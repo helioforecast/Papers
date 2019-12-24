@@ -102,3 +102,6 @@ venv.bak/
 
 # mypy
 .mypy_cache/
+
+# Special
+Bailey2020_L5DstPrediction/data/omni2_all_years.dat
