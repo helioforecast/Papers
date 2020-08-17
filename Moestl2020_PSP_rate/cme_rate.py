@@ -3,15 +3,13 @@
 
 # # CME rate
 # 
-# cme_rate.py
-# https://github.com/cmoestl/heliocats
-# analyses ICMECAT data for CME rate paper Möstl et al. 2020 ApJ (in prep.)
+# cme_rate.ipynb, cme_rate.py
+# https://github.com/helioforecast/Papers/tree/master/Moestl2020_PSP_rate
+# analyses ICMECAT data for CME rate paper Möstl et al. 2020, ApJ
 # 
 # Author: C. Moestl, IWF Graz, Austria; twitter @chrisoutofspace; https://github.com/cmoestl
 # 
-# **work in progress, last update July 2020**
-# 
-# For installation of a conda environment to run this code and how to download the data into a directory specified in config.py, see instructions in README.md of the heliocats github repo. Conda dependencies are listed under environment.yml, and pip in requirements.txt. Plots are saved in results/plots_rate/ as png and pdf. Full run time for this notebook is about 1 minute on a 2018 macbook pro.
+# For installation of a conda environment to run this code and how to download the data into a directory specified in config.py, see instructions in README.md of the heliocats github repo. Conda dependencies are listed under environment.yml, and pip in requirements.txt. Plots are saved in results/plots_rate/ as png and pdf.
 # 
 # 
 # **Data sources**
@@ -60,7 +58,7 @@
 # 
 # 
 
-# In[3]:
+# In[ ]:
 
 
 from scipy import stats
@@ -124,7 +122,7 @@ plt.rcParams["figure.figsize"] = (15,8)
 
 # ## 1 Settings and load data
 
-# In[ ]:
+# In[1]:
 
 
 plt.close('all')
@@ -151,11 +149,11 @@ if load_data > 0:
     #####################
     print('get RC ICME list')    
     #download richardson and cane list
-    rc_url='http://www.srl.caltech.edu/ACE/ASC/DATA/level3/icmetable2.htm'
+    #rc_url='http://www.srl.caltech.edu/ACE/ASC/DATA/level3/icmetable2.htm'
 
-    try: urllib.request.urlretrieve(rc_url,data_path+'rc_list.htm')
-    except urllib.error.URLError as e:
-        print('Failed downloading ', rc_url,' ',e)
+    #try: urllib.request.urlretrieve(rc_url,data_path+'rc_list.htm')
+    #except urllib.error.URLError as e:
+    #    print('Failed downloading ', rc_url,' ',e)
 
     #read RC list into pandas dataframe    
     rc_dfull=pd.read_html(data_path+'rc_list.htm')
@@ -262,8 +260,8 @@ if load_data > 0:
     fileuly='ulysses_1990_2009_rtn.p'
     [uly,huly]=pickle.load(open(data_path+fileuly, "rb" ) ) 
     
-    fileomni='omni_1963_2020.p'
-    [omni,homni]=pickle.load(open(data_path+fileomni, "rb" ) ) 
+    #fileomni='omni_1963_2020.p'
+    #[omni,homni]=pickle.load(open(data_path+fileomni, "rb" ) ) 
 
     print('load all data done')
 
@@ -372,7 +370,7 @@ merci_max=iall_max[np.where(np.logical_and(ic.sc_insitu[iall_max] =='MESSENGER',
 print('done')
 
 
-# In[3]:
+# In[11]:
 
 
 ic
@@ -382,7 +380,7 @@ ic
 
 # ### Check data days available each year for each planet or spacecraft
 
-# In[4]:
+# In[12]:
 
 
 ######################## make bin for each year for yearly histograms
@@ -524,7 +522,7 @@ print('done')
 
 # ### get yearly ICME rates at each spacecraft
 
-# In[5]:
+# In[13]:
 
 
 #define dates of January 1 from 2007 to 2020
@@ -644,7 +642,7 @@ icrate
 
 # ### get Richardson and Cane ICME rate for comparison
 
-# In[6]:
+# In[14]:
 
 
 #convert times in dataframe from richardson and cane list to numpy array
@@ -688,7 +686,7 @@ print(yearly_mid_times_rc)
 
 # ### **Figure 1** plot ICME frequency cycle 24
 
-# In[7]:
+# In[15]:
 
 
 sns.set_context("talk")     
@@ -802,7 +800,7 @@ plt.savefig('results/plots_rate/fig1_icme_rate_hso.png', dpi=300)
 
 # ## solar cycle 23
 
-# In[8]:
+# In[16]:
 
 
 print('cycle 23\n')
@@ -886,7 +884,7 @@ print()
 
 # ## solar cycle 24
 
-# In[9]:
+# In[17]:
 
 
 print('cycle 24\n')
@@ -945,7 +943,7 @@ print(np.round(np.mean(rc_rate24/ic_rate24),2))
 # ## **Figure 2** correlation SSN with ICME rate and fit
 # plot SSN vs ICME rate, linear fit with confidence interval
 
-# In[10]:
+# In[18]:
 
 
 #add spots23/24 and rc_rate23/24 into 1 array for correlation
@@ -1021,7 +1019,7 @@ plt.savefig('results/plots_rate/fig2_rate_ssn', dpi=300)
 # ## predictions for solar cycle 25: SSN and ICME rate
 # ### 1. Mean cycle model
 
-# In[11]:
+# In[20]:
 
 
 # from heliocats import stats as hs
@@ -1140,7 +1138,7 @@ print('Std in ICME rate from fit and ICMECAT range for each year:')
 print(ic_rate_25_m_std)
 
 
-# In[12]:
+# In[23]:
 
 
 ########################################################### 2. SC25 panel prediction (SC25PP)
@@ -1259,7 +1257,7 @@ print('final Std in ICME rate from SSN prediction, SSN to ICME fit and ICMECAT r
 print(ic_rate_25_pp_std)
 
 
-# In[13]:
+# In[24]:
 
 
 ################################### SC25MC
@@ -1357,7 +1355,7 @@ print(ic_rate_25_mc20_std)
 
 # ## **Figure 3** ICME rate predictions
 
-# In[14]:
+# In[25]:
 
 
 sns.set_context("talk")     
@@ -1453,7 +1451,7 @@ plt.savefig('results/plots_rate/fig3_sc25_predictions.pdf', dpi=300)
 plt.savefig('results/plots_rate/fig3_sc25_predictions.png', dpi=300)
 
 
-# In[15]:
+# In[27]:
 
 
 #Extra plot for solar cycle comparison
@@ -1531,7 +1529,7 @@ plt.savefig('results/cycle25_prediction_short.png',dpi=100)
 
 # ### make PSP and Solar Orbiter position
 
-# In[16]:
+# In[28]:
 
 
 frame='HEEQ'
@@ -1621,7 +1619,7 @@ sns.distplot(bepi_r)
 plt.xlabel('AU')
 
 
-# In[17]:
+# In[29]:
 
 
 #get the speed in hourly resolution
@@ -1651,7 +1649,7 @@ plt.xlabel('AU')
 print('psp maximum speed ',np.max(psp_highres_speed),' km/s at ',psp_highres_r[np.argmax(psp_highres_speed)], ' AU')
 
 
-# In[18]:
+# In[30]:
 
 
 #%matplotlib inline
@@ -1723,7 +1721,7 @@ plt.figtext(0.99,0.008,'C. Möstl @chrisoutofspace', fontsize=10, ha='right',col
 plt.savefig('results/psp_orbits.png', dpi=100)
 
 
-# In[19]:
+# In[31]:
 
 
 #same thing for Solar Orbiter
@@ -1827,7 +1825,7 @@ plt.savefig('results/solo_orbits.png', dpi=100)
 
 # first calculate smooth functions for the icme rate including the derived error bars in Figure 3
 
-# In[20]:
+# In[32]:
 
 
 #fit yearly ICME rates again with hathaway function to get to daily resolution including errors
@@ -1887,7 +1885,7 @@ plt.plot(times_25_daily_icrange_num,fmc_low(times_25_daily_icrange_num))
 
 # Figure out how many ICMEs PSP sees < 0.1 AU, < 0.2 AU, < 0.3 AU for the predicted ICME rates
 
-# In[21]:
+# In[33]:
 
 
 #make position new in order to be of similar range with ICME rate spline fits
@@ -2018,7 +2016,7 @@ print('days < 0.3 AU:',solo_l03.size)
 
 # ## **Figure 4** PSP Solar Orbiter distance and ICME rate
 
-# In[22]:
+# In[34]:
 
 
 sns.set_context("talk")     
@@ -2112,20 +2110,13 @@ plt.savefig('results/plots_rate/fig4_psp_rate.pdf', dpi=300)
 plt.savefig('results/plots_rate/fig4_psp_rate.png', dpi=300)
 
 
-# In[ ]:
-
-
-
-
-
 # # 5 3DCORE modeling of PSP double crossings
 
 # Here 3DCORE is used to model synthetic observations of expanding flux ropes close to the Sun
 
-# In[61]:
+# In[36]:
 
 
-#!pip install 3DCORE if not already in the environment
 import py3dcore
 import heliosat
 from mpl_toolkits.mplot3d import Axes3D
@@ -2182,7 +2173,7 @@ class PSP_FIXED(heliosat.PSP):
 setattr(heliosat, "PSP_FIXED", PSP_FIXED)
 
 
-# In[62]:
+# In[37]:
 
 
 def measure(obj, sat, t0, t1, frame="HEEQ", bframe="HEEQ", satparams=None):
@@ -2268,7 +2259,7 @@ def plot_traj(ax, sat, t_snap, frame="HEEQ", traj_pos=True, traj_major=4, traj_m
 # ## **Figure 5**
 # 
 
-# In[69]:
+# In[46]:
 
 
 sns.set_style('whitegrid')
@@ -2278,7 +2269,6 @@ ax = fig.add_subplot(111, projection='3d')
 
 plot_configure(ax, view_azim=125, view_elev=40, view_radius=.15)
 #plot_configure(ax, view_azim=125, view_elev=35, view_radius=.04)
-
 
 
 plot_3dcore(ax, model_obj, TP_A, color=C_A)
@@ -2297,7 +2287,7 @@ plt.savefig('results/plots_rate/fig5_3dcore_visual.pdf', dpi=300)
 plt.savefig('results/plots_rate/fig5_3dcore_visual.png', dpi=300)
 
 
-# In[64]:
+# In[47]:
 
 
 t1, btot1, bxyz1 = measure(model_obj, "PSP", TP_A - datetime.timedelta(hours=6), TP_A  + datetime.timedelta(hours=6), frame="ECLIPJ2000", bframe="SPP_RTN")
@@ -2306,7 +2296,7 @@ t2, btot2, bxyz2 = measure(model_obj, "PSP", TP_B - datetime.timedelta(hours=12)
 tf, btotf, bxyzf = measure(model_obj, "PSP_FIXED", TP_A - datetime.timedelta(hours=6), TP_A  + datetime.timedelta(hours=6), frame="ECLIPJ2000", bframe="SPP_RTN", satparams=TP_A)
 
 
-# In[65]:
+# In[48]:
 
 
 sns.set_context('talk')
@@ -2361,7 +2351,7 @@ plt.savefig('results/plots_rate/fig6_3dcore_components.pdf', dpi=300)
 plt.savefig('results/plots_rate/fig6_3dcore_components.png', dpi=300)
 
 
-# In[66]:
+# In[49]:
 
 
 def plot_reconstruction(ax, obj, qs, **kwargs):
@@ -2404,14 +2394,14 @@ def reconstruct_path(obj, sat, t0, t1, frame="HEEQ", satparams=None):
     return qs
 
 
-# In[67]:
+# In[50]:
 
 
 QPATH_PSP = reconstruct_path(model_obj, "PSP", TP_A - datetime.timedelta(hours=3), TP_A  + datetime.timedelta(hours=3), frame="ECLIPJ2000")
 QPATH_PSP_FIXED = reconstruct_path(model_obj, "PSP_FIXED", TP_A - datetime.timedelta(hours=3), TP_A  + datetime.timedelta(hours=3), frame="ECLIPJ2000", satparams=TP_A)
 
 
-# In[68]:
+# In[51]:
 
 
 fig = plt.figure(figsize=(20, 20),dpi=50)
@@ -2428,13 +2418,13 @@ plot_reconstruction(ax, model_obj, QPATH_PSP_FIXED, color="m", ls="-", lw=2)
 plt.tight_layout()
 
 
-# ### make animation
+# ### make animation *****************
 
 # ***
 
 # ### Play with model settings
 
-# In[38]:
+# In[44]:
 
 
 ############### Model Settings
@@ -2469,7 +2459,7 @@ t2, btot2, bxyz2 = measure(model_obj, "PSP", TP_B - datetime.timedelta(hours=12)
 tf, btotf, bxyzf = measure(model_obj, "PSP_FIXED", TP_A - datetime.timedelta(hours=6), TP_A  + datetime.timedelta(hours=6), frame="ECLIPJ2000", bframe="SPP_RTN", satparams=TP_A)
 
 
-# In[39]:
+# In[45]:
 
 
 sns.set_style('whitegrid')
@@ -2545,26 +2535,4 @@ plt.annotate('(b)',[0.01,0.475],xycoords='figure fraction',weight='bold')
 
 plt.savefig('results/plots_rate/fig6_3dcore_components_v0_250kms.png', dpi=300)
 # plt.savefig('results/plots_rate/fig6_3dcore_components.png', dpi=300)
-
-
-# ## 6 not used in the paper: Dst distribution prediction and number of major geomagnetic storms
-
-# In[34]:
-
-
-#distribution of sunspot number
-
-#a=ssn.spot_mean_12.notnull()
-#sns.distplot(ssn.spot_mean_12[a])
-
-#distribution of dst since 1963
-b=np.where(np.isnan(omni.dst)==False)
-sns.distplot(omni.dst[b],bins=150)
-plt.xlim(-200,50)
-
-
-# In[ ]:
-
-
-
 

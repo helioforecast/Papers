@@ -20,9 +20,9 @@ go to a directory of your choice
 
       git clone https://github.com/helioforecast/Papers
       
-      cd Papers/Moestl_2020_
+      cd Papers/Moestl2020_PSP_rate
 
-Create conda environment:
+Create conda environment and install all packages:
 
 	  conda env create -f environment.yml
 	  
@@ -33,27 +33,19 @@ Create conda environment:
 	  
 
 You need to download the data files from this figshare repository: https://doi.org/10.6084/m9.figshare.11973693.v7
-(The version number is important as future updates might change these data sets.)
-
-data/wind_2018_2019_heeq.p
-data/wind_2007_2018_heeq_helcats.p
-data/psp_2018_2019_sceq.p
-data/stereoa_2007_2019_sceq.p
-data/stereoa_2019_2020_sceq_beacon.p
-data/stereob_2007_2014_sceq.p
-data/maven_2014_2018_removed_smoothed.p
-data/ulysses_1990_2009_rtn.p
-data/vex_2007_2014_sceq_removed.p
-data/messenger_2007_2015_sceq_removed.p
+and place them in the 'data' folder. The version number is important as future updates might change these data sets.
   
-and place them in the 'data' folder.
-
   
-Run with
+## Running the code
+  
+Make sure you have activated the helio_paper environment, and run the jupyter notebook with 
 
     jupyter lab
-or	  
-	jupyter notebook  
-	
-and select the script cme_rate.ipynb and run it from within jupyter notebook or jupyter lab. 
+or
+
+    jupyter notebook  
+
+and select the script cme_rate.ipynb and run it from within jupyter notebook or jupyter lab. The same code is available as the script cme_rate.py 
+
+Folder results/plots_rate contains the produced figures.
 	  
