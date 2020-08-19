@@ -58,7 +58,7 @@
 # 
 # 
 
-# In[ ]:
+# In[1]:
 
 
 from scipy import stats
@@ -117,12 +117,16 @@ if os.path.isdir(datadir) == False: os.mkdir(datadir)
 outputdirectory='results/plots_rate'
 if os.path.isdir(outputdirectory) == False: os.mkdir(outputdirectory)
     
+    
+animdirectory='results/plots_rate/anim'
+if os.path.isdir(animdirectory) == False: os.mkdir(animdirectory)
+    
 plt.rcParams["figure.figsize"] = (15,8)
 
 
 # ## 1 Settings and load data
 
-# In[1]:
+# In[8]:
 
 
 plt.close('all')
@@ -138,7 +142,7 @@ AU_in_km=const.au.value/1e3
 
 #set for loading
 load_data=1
-get_new_sunspots=1
+get_new_sunspots=0
 
 
 if load_data > 0:
@@ -234,38 +238,47 @@ if load_data > 0:
     print('Wind merging done')
     
 
-    filevex='vex_2007_2014_sceq_removed.p'
-    [vex,hvex]=pickle.load(open(data_path+filevex, 'rb' ) )
-    
-    filevex='vex_2007_2014_sceq.p'
-    [vexnon,hvexnon]=pickle.load(open(data_path+filevex, 'rb' ) )
-    
 
-    filemes='messenger_2007_2015_sceq_removed.p'
-    [mes,hmes]=pickle.load(open(data_path+filemes, 'rb' ) )
+# In[9]:
 
-    filemes='messenger_2007_2015_sceq.p'
-    [mesnon,hmesnon]=pickle.load(open(data_path+filemes, 'rb' ) )
 
- 
-    filestb='stereob_2007_2014_sceq.p'
-    [stb,hstb]=pickle.load(open(data_path+filestb, "rb" ) )      
-             
-    filesta='stereoa_2007_2019_sceq.p'
-    [sta,hsta]=pickle.load(open(data_path+filesta, "rb" ) )  
+filevex='vex_2007_2014_sceq_removed.p'
+[vex,hvex]=pickle.load(open(data_path+filevex, 'rb' ) )
 
-    filepsp='psp_2018_2019_sceq.p'
-    [psp,hpsp]=pickle.load(open(data_path+filepsp, "rb" ) )  
-    
-    fileuly='ulysses_1990_2009_rtn.p'
-    [uly,huly]=pickle.load(open(data_path+fileuly, "rb" ) ) 
-    
-    #fileomni='omni_1963_2020.p'
-    #[omni,homni]=pickle.load(open(data_path+fileomni, "rb" ) ) 
+filevex='vex_2007_2014_sceq.p'
+[vexnon,hvexnon]=pickle.load(open(data_path+filevex, 'rb' ) )
 
-    print('load all data done')
+filemes='messenger_2007_2015_sceq_removed.p'
+[mes,hmes]=pickle.load(open(data_path+filemes, 'rb' ) )
 
-    
+filemes='messenger_2007_2015_sceq.p'
+[mesnon,hmesnon]=pickle.load(open(data_path+filemes, 'rb' ) )
+
+
+filestb='stereob_2007_2014_sceq.p'
+[stb,hstb]=pickle.load(open(data_path+filestb, "rb" ) )      
+
+filesta='stereoa_2007_2019_sceq.p'
+[sta,hsta]=pickle.load(open(data_path+filesta, "rb" ) )  
+
+filepsp='psp_2018_2019_sceq.p'
+[psp,hpsp]=pickle.load(open(data_path+filepsp, "rb" ) )  
+
+fileuly='ulysses_1990_2009_rtn.p'
+[uly,huly]=pickle.load(open(data_path+fileuly, "rb" ) ) 
+
+#fileomni='omni_1963_2020.p'
+#[omni,homni]=pickle.load(open(data_path+fileomni, "rb" ) ) 
+
+print('load all data done')
+
+  
+
+
+# In[10]:
+
+
+
 # ############# get positions from a 
 # # pre-made IDL sav file for older spacecraft positions
 # print()
@@ -943,7 +956,7 @@ print(np.round(np.mean(rc_rate24/ic_rate24),2))
 # ## **Figure 2** correlation SSN with ICME rate and fit
 # plot SSN vs ICME rate, linear fit with confidence interval
 
-# In[18]:
+# In[52]:
 
 
 #add spots23/24 and rc_rate23/24 into 1 array for correlation
@@ -1001,8 +1014,8 @@ plt.ylabel("ICME rate per year (Richardson & Cane)")
 #plt.plot(xlinfit,ylinfit_2,'--k')
 
 #https://seaborn.pydata.org/generated/seaborn.regplot.html
-sns.regplot(spots_corr,rc_rate_corr, x_ci='ci',ci=95,label=r'fit confidence 2$\mathrm{\sigma}$')
-sns.regplot(spots_corr,rc_rate_corr, x_ci='ci',ci=68,label=r'fit confidence 1$\mathrm{\sigma}$')
+sns.regplot(spots_corr,rc_rate_corr, x_ci='ci',ci=95,label=r'fit confidence 2$\mathrm{\sigma}$',truncate=False)
+sns.regplot(spots_corr,rc_rate_corr, x_ci='ci',ci=68,label=r'fit confidence 1$\mathrm{\sigma}$',truncate=False)
 
 xlinfit=np.arange(0,350)
 ylinfit=linfit.slope*xlinfit+linfit.intercept
@@ -1019,7 +1032,7 @@ plt.savefig('results/plots_rate/fig2_rate_ssn', dpi=300)
 # ## predictions for solar cycle 25: SSN and ICME rate
 # ### 1. Mean cycle model
 
-# In[20]:
+# In[53]:
 
 
 # from heliocats import stats as hs
@@ -1138,7 +1151,7 @@ print('Std in ICME rate from fit and ICMECAT range for each year:')
 print(ic_rate_25_m_std)
 
 
-# In[23]:
+# In[54]:
 
 
 ########################################################### 2. SC25 panel prediction (SC25PP)
@@ -1257,7 +1270,7 @@ print('final Std in ICME rate from SSN prediction, SSN to ICME fit and ICMECAT r
 print(ic_rate_25_pp_std)
 
 
-# In[24]:
+# In[55]:
 
 
 ################################### SC25MC
@@ -1355,7 +1368,7 @@ print(ic_rate_25_mc20_std)
 
 # ## **Figure 3** ICME rate predictions
 
-# In[25]:
+# In[56]:
 
 
 sns.set_context("talk")     
@@ -1451,7 +1464,7 @@ plt.savefig('results/plots_rate/fig3_sc25_predictions.pdf', dpi=300)
 plt.savefig('results/plots_rate/fig3_sc25_predictions.png', dpi=300)
 
 
-# In[27]:
+# In[57]:
 
 
 #Extra plot for solar cycle comparison
@@ -1529,7 +1542,7 @@ plt.savefig('results/cycle25_prediction_short.png',dpi=100)
 
 # ### make PSP and Solar Orbiter position
 
-# In[28]:
+# In[58]:
 
 
 frame='HEEQ'
@@ -1619,7 +1632,7 @@ sns.distplot(bepi_r)
 plt.xlabel('AU')
 
 
-# In[29]:
+# In[59]:
 
 
 #get the speed in hourly resolution
@@ -1649,7 +1662,7 @@ plt.xlabel('AU')
 print('psp maximum speed ',np.max(psp_highres_speed),' km/s at ',psp_highres_r[np.argmax(psp_highres_speed)], ' AU')
 
 
-# In[30]:
+# In[60]:
 
 
 #%matplotlib inline
@@ -1721,7 +1734,7 @@ plt.figtext(0.99,0.008,'C. Möstl @chrisoutofspace', fontsize=10, ha='right',col
 plt.savefig('results/psp_orbits.png', dpi=100)
 
 
-# In[31]:
+# In[61]:
 
 
 #same thing for Solar Orbiter
@@ -1825,7 +1838,7 @@ plt.savefig('results/solo_orbits.png', dpi=100)
 
 # first calculate smooth functions for the icme rate including the derived error bars in Figure 3
 
-# In[32]:
+# In[62]:
 
 
 #fit yearly ICME rates again with hathaway function to get to daily resolution including errors
@@ -1885,7 +1898,7 @@ plt.plot(times_25_daily_icrange_num,fmc_low(times_25_daily_icrange_num))
 
 # Figure out how many ICMEs PSP sees < 0.1 AU, < 0.2 AU, < 0.3 AU for the predicted ICME rates
 
-# In[33]:
+# In[63]:
 
 
 #make position new in order to be of similar range with ICME rate spline fits
@@ -2016,7 +2029,7 @@ print('days < 0.3 AU:',solo_l03.size)
 
 # ## **Figure 4** PSP Solar Orbiter distance and ICME rate
 
-# In[34]:
+# In[64]:
 
 
 sns.set_context("talk")     
@@ -2114,7 +2127,7 @@ plt.savefig('results/plots_rate/fig4_psp_rate.png', dpi=300)
 
 # Here 3DCORE is used to model synthetic observations of expanding flux ropes close to the Sun
 
-# In[36]:
+# In[2]:
 
 
 import py3dcore
@@ -2173,7 +2186,7 @@ class PSP_FIXED(heliosat.PSP):
 setattr(heliosat, "PSP_FIXED", PSP_FIXED)
 
 
-# In[37]:
+# In[3]:
 
 
 def measure(obj, sat, t0, t1, frame="HEEQ", bframe="HEEQ", satparams=None):
@@ -2182,7 +2195,19 @@ def measure(obj, sat, t0, t1, frame="HEEQ", bframe="HEEQ", satparams=None):
     else:
         inst = getattr(heliosat, sat)()
 
-    t_s = [datetime.datetime.fromtimestamp(_) for _ in np.array(list(range(int(t0.timestamp()), int(t1.timestamp()))))]
+    #time resolution in seconds
+    #t_s = [datetime.datetime.fromtimestamp(_) for _ in np.array(list(range(int(t0.timestamp()), int(t1.timestamp()))))]
+    
+    #time resolution in minutes
+    res_in_days=1/(24*60.)    
+    t_s = []
+    while t0 < t1:
+        t_s.append(t0)
+        t0 += timedelta(days=res_in_days)
+
+    #print('data points',len(t_s))
+    
+    
     o_s = inst.trajectory(t_s, frame=frame)
 
     if satparams:
@@ -2205,7 +2230,7 @@ def plot_configure(ax, **kwargs):
     ax.set_ylim([-view_radius, view_radius])
     ax.set_zlim([-view_radius, view_radius])
     
-    ax.set_axis_off()
+    #ax.set_axis_off()
 
 def plot_3dcore(ax, obj, t_snap, **kwargs):
     kwargs["alpha"] = kwargs.pop("alpha", .05)
@@ -2213,6 +2238,19 @@ def plot_3dcore(ax, obj, t_snap, **kwargs):
     kwargs["lw"] = kwargs.pop("lw", 1)
 
     ax.scatter(0, 0, 0, color="y", s=500)
+    
+    #Sun 
+    #scale=695510/149597870.700 #Rs in km, AU in km
+    # sphere with radius Rs in AU
+    #u, v = np.mgrid[0:2*np.pi:40j, 0:np.pi:30j]
+    #x = np.cos(u)*np.sin(v)*scale
+    #y = np.sin(u)*np.sin(v)*scale
+    #z = np.cos(v)*scale
+    
+    #ax.plot_surface(x, y, z, rstride=1, cstride=1, color='yellow', linewidth=0, antialiased=False)
+    
+    
+    
 
     model_obj.propagate(t_snap)
     wf_model = model_obj.visualize_wireframe(index=0)
@@ -2259,17 +2297,20 @@ def plot_traj(ax, sat, t_snap, frame="HEEQ", traj_pos=True, traj_major=4, traj_m
 # ## **Figure 5**
 # 
 
-# In[46]:
+# In[19]:
 
 
 sns.set_style('whitegrid')
-fig = plt.figure(figsize=(15, 10),dpi=50)
+fig = plt.figure(figsize=(15, 10),dpi=200)
 
 ax = fig.add_subplot(111, projection='3d')
 
-plot_configure(ax, view_azim=125, view_elev=40, view_radius=.15)
-#plot_configure(ax, view_azim=125, view_elev=35, view_radius=.04)
 
+#plot_configure(ax, view_azim=125, view_elev=40, view_radius=.15)
+plot_configure(ax, view_azim=0, view_elev=90, view_radius=.5)
+
+
+#ax.autoscale(axis='both')
 
 plot_3dcore(ax, model_obj, TP_A, color=C_A)
 plot_3dcore_field(ax, model_obj, color=C_A, steps=400, step_size=0.0005, lw=1.5, ls=":")
@@ -2281,13 +2322,15 @@ plot_traj(ax, "PSP", TP_B, frame="ECLIPJ2000", color=C_B,lw=1.5)
 
 plot_traj(ax, "PSP", TP_B, frame="ECLIPJ2000", color="k", traj_pos=False, traj_major=None, traj_minor=144,lw=1.5)
 
+
+#ax.set_zlim3d(ax.get_zlim3d()*0.75)
 plt.tight_layout()
 
-plt.savefig('results/plots_rate/fig5_3dcore_visual.pdf', dpi=300)
-plt.savefig('results/plots_rate/fig5_3dcore_visual.png', dpi=300)
+#plt.savefig('results/plots_rate/fig5_3dcore_visual.pdf', dpi=300)
+#plt.savefig('results/plots_rate/fig5_3dcore_visual.png', dpi=300)
 
 
-# In[47]:
+# In[ ]:
 
 
 t1, btot1, bxyz1 = measure(model_obj, "PSP", TP_A - datetime.timedelta(hours=6), TP_A  + datetime.timedelta(hours=6), frame="ECLIPJ2000", bframe="SPP_RTN")
@@ -2296,7 +2339,7 @@ t2, btot2, bxyz2 = measure(model_obj, "PSP", TP_B - datetime.timedelta(hours=12)
 tf, btotf, bxyzf = measure(model_obj, "PSP_FIXED", TP_A - datetime.timedelta(hours=6), TP_A  + datetime.timedelta(hours=6), frame="ECLIPJ2000", bframe="SPP_RTN", satparams=TP_A)
 
 
-# In[48]:
+# In[ ]:
 
 
 sns.set_context('talk')
@@ -2351,7 +2394,7 @@ plt.savefig('results/plots_rate/fig6_3dcore_components.pdf', dpi=300)
 plt.savefig('results/plots_rate/fig6_3dcore_components.png', dpi=300)
 
 
-# In[49]:
+# In[ ]:
 
 
 def plot_reconstruction(ax, obj, qs, **kwargs):
@@ -2394,14 +2437,14 @@ def reconstruct_path(obj, sat, t0, t1, frame="HEEQ", satparams=None):
     return qs
 
 
-# In[50]:
+# In[ ]:
 
 
 QPATH_PSP = reconstruct_path(model_obj, "PSP", TP_A - datetime.timedelta(hours=3), TP_A  + datetime.timedelta(hours=3), frame="ECLIPJ2000")
 QPATH_PSP_FIXED = reconstruct_path(model_obj, "PSP_FIXED", TP_A - datetime.timedelta(hours=3), TP_A  + datetime.timedelta(hours=3), frame="ECLIPJ2000", satparams=TP_A)
 
 
-# In[51]:
+# In[ ]:
 
 
 fig = plt.figure(figsize=(20, 20),dpi=50)
@@ -2418,13 +2461,51 @@ plot_reconstruction(ax, model_obj, QPATH_PSP_FIXED, color="m", ls="-", lw=2)
 plt.tight_layout()
 
 
-# ### make animation *****************
+# ### make animation 
+
+# In[ ]:
+
+
+
+#time for the animation
+tlist=[]
+for i in np.arange(1,2000,120):
+    tlist.append(t_launch+datetime.timedelta(minutes=float(i)))
+
+sns.set_style('whitegrid')
+
+
+fk=0
+
+for k in np.arange(1,len(tlist)):
+
+    fig = plt.figure(figsize=(15, 10),dpi=200)
+    ax = fig.add_subplot(111, projection='3d')
+    ax.autoscale(enable=True, axis='both', tight=None)
+    
+    plot_configure(ax, view_azim=125, view_elev=40, view_radius=.15)
+    #plot_configure(ax, view_azim=125, view_elev=35, view_radius=.04)
+
+
+    plot_3dcore(ax, model_obj, tlist[k], color=C0)
+    #plot_3dcore_field(ax, model_obj, color=C_A, steps=400, step_size=0.0005, lw=1.5, ls=":")
+    plot_traj(ax, "PSP", tlist[k], frame="ECLIPJ2000", color=C_A)
+        
+    framestr = '%05i' % (fk)  
+    fk=fk+1
+    plt.savefig(animdirectory+'/3dcore_psp_'+framestr+'.jpg')
+    print('frame:', fk)
+
+#plt.tight_layout()
+
+os.system('ffmpeg -r 5 -i '+str(animdirectory)+'/3dcore_psp_%05d.jpg -b 5000k -r 5 '+str(outputdirectory)+'/3dcore_psp.mp4 -y -loglevel quiet')
+
 
 # ***
 
 # ### Play with model settings
 
-# In[44]:
+# In[ ]:
 
 
 ############### Model Settings
@@ -2459,7 +2540,7 @@ t2, btot2, bxyz2 = measure(model_obj, "PSP", TP_B - datetime.timedelta(hours=12)
 tf, btotf, bxyzf = measure(model_obj, "PSP_FIXED", TP_A - datetime.timedelta(hours=6), TP_A  + datetime.timedelta(hours=6), frame="ECLIPJ2000", bframe="SPP_RTN", satparams=TP_A)
 
 
-# In[45]:
+# In[ ]:
 
 
 sns.set_style('whitegrid')
