@@ -58,7 +58,7 @@
 # 
 # 
 
-# In[1]:
+# In[349]:
 
 
 from scipy import stats
@@ -85,6 +85,13 @@ import heliopy.spice as spice
 import heliopy.data.spice as spicedata
 import astropy
 
+
+#our own package
+from heliocats import stats as hs
+from heliocats import data as hd
+
+
+
 #where the 6 in situ data files are located is read from input.py
 #as data_path=....
 from config import data_path
@@ -93,11 +100,6 @@ from config import data_path
 from pandas.plotting import register_matplotlib_converters
 register_matplotlib_converters()
 
-from heliocats import stats as hs
-importlib.reload(hs) #reload again while debugging
-
-from heliocats import data as hd
-importlib.reload(hd) #reload again while debugging
 
 #Convert this notebook to a script with jupyter nbconvert --to script cme_rate.ipynb
 os.system('jupyter nbconvert --to script cme_rate.ipynb')    
@@ -121,12 +123,16 @@ if os.path.isdir(outputdirectory) == False: os.mkdir(outputdirectory)
 animdirectory='results/plots_rate/anim'
 if os.path.isdir(animdirectory) == False: os.mkdir(animdirectory)
     
+    
+animdirectory2='results/plots_rate/anim2'
+if os.path.isdir(animdirectory2) == False: os.mkdir(animdirectory2)
+    
 plt.rcParams["figure.figsize"] = (15,8)
 
 
 # ## 1 Settings and load data
 
-# In[2]:
+# In[3]:
 
 
 plt.close('all')
@@ -268,7 +274,7 @@ if load_data > 0:
     
 
 
-# In[57]:
+# In[4]:
 
 
 
@@ -376,7 +382,7 @@ merci_max=iall_max[np.where(np.logical_and(ic.sc_insitu[iall_max] =='MESSENGER',
 print('done')
 
 
-# In[58]:
+# In[5]:
 
 
 ic
@@ -386,7 +392,7 @@ ic
 
 # ### Check data days available each year for each planet or spacecraft
 
-# In[59]:
+# In[6]:
 
 
 ######################## make bin for each year for yearly histograms
@@ -528,7 +534,7 @@ print('done')
 
 # ### get yearly ICME rates at each spacecraft
 
-# In[82]:
+# In[7]:
 
 
 #define dates of January 1 from 2007 to 2020
@@ -653,7 +659,7 @@ icrate
 
 # ### get Richardson and Cane ICME rate for comparison
 
-# In[61]:
+# In[8]:
 
 
 #convert times in dataframe from richardson and cane list to numpy array
@@ -697,7 +703,7 @@ print(yearly_mid_times_rc)
 
 # ### **Figure 1** plot ICME frequency cycle 24
 
-# In[83]:
+# In[9]:
 
 
 sns.set_context("talk")     
@@ -828,7 +834,7 @@ plt.savefig('results/plots_rate/fig1_icme_rate_hso.png', dpi=300)
 
 # ## solar cycle 23
 
-# In[84]:
+# In[10]:
 
 
 print('cycle 23\n')
@@ -912,7 +918,7 @@ print()
 
 # ## solar cycle 24
 
-# In[87]:
+# In[11]:
 
 
 print('cycle 24\n')
@@ -971,7 +977,7 @@ print(np.round(np.mean(rc_rate24/ic_rate24),2))
 # ## **Figure 2** correlation SSN with ICME rate and fit
 # plot SSN vs ICME rate, linear fit with confidence interval
 
-# In[88]:
+# In[12]:
 
 
 #add spots23/24 and rc_rate23/24 into 1 array for correlation
@@ -1047,7 +1053,7 @@ plt.savefig('results/plots_rate/fig2_rate_ssn', dpi=300)
 # ## predictions for solar cycle 25: SSN and ICME rate
 # ### 1. Mean cycle model
 
-# In[89]:
+# In[13]:
 
 
 # from heliocats import stats as hs
@@ -1166,7 +1172,7 @@ print('Std in ICME rate from fit and ICMECAT range for each year:')
 print(ic_rate_25_m_std)
 
 
-# In[111]:
+# In[14]:
 
 
 ########################################################### 2. SC25 panel prediction (SC25PP)
@@ -1285,7 +1291,7 @@ print('final Std in ICME rate from SSN prediction, SSN to ICME fit and ICMECAT r
 print(ic_rate_25_pp_std)
 
 
-# In[112]:
+# In[15]:
 
 
 ################################### SC25MC
@@ -1383,7 +1389,7 @@ print(ic_rate_25_mc20_std)
 
 # ## **Figure 3** ICME rate predictions
 
-# In[141]:
+# In[16]:
 
 
 sns.set_context("talk")     
@@ -1479,7 +1485,7 @@ plt.savefig('results/plots_rate/fig3_sc25_predictions.pdf', dpi=300)
 plt.savefig('results/plots_rate/fig3_sc25_predictions.png', dpi=300)
 
 
-# In[147]:
+# In[17]:
 
 
 #Extra plot for solar cycle comparison
@@ -1548,7 +1554,7 @@ plt.savefig('results/cycle25_prediction_short.png',dpi=100)
 
 # ### make PSP and Solar Orbiter position
 
-# In[148]:
+# In[18]:
 
 
 frame='HEEQ'
@@ -1638,7 +1644,7 @@ sns.distplot(bepi_r)
 plt.xlabel('AU')
 
 
-# In[156]:
+# In[19]:
 
 
 #get the speed in hourly resolution
@@ -1668,7 +1674,7 @@ plt.xlabel('AU')
 print('psp maximum speed ',np.max(psp_highres_speed),' km/s at ',psp_highres_r[np.argmax(psp_highres_speed)], ' AU')
 
 
-# In[157]:
+# In[20]:
 
 
 #%matplotlib inline
@@ -1737,7 +1743,7 @@ plt.figtext(0.99,0.008,'C. Möstl @chrisoutofspace', fontsize=10, ha='right',col
 plt.savefig('results/psp_orbits.png', dpi=100)
 
 
-# In[158]:
+# In[21]:
 
 
 #same thing for Solar Orbiter
@@ -1841,7 +1847,7 @@ plt.savefig('results/solo_orbits.png', dpi=100)
 
 # first calculate smooth functions for the icme rate including the derived error bars in Figure 3
 
-# In[159]:
+# In[22]:
 
 
 #fit yearly ICME rates again with hathaway function to get to daily resolution including errors
@@ -1901,7 +1907,7 @@ plt.plot(times_25_daily_icrange_num,fmc_low(times_25_daily_icrange_num))
 
 # Figure out how many ICMEs PSP sees < 0.1 AU, < 0.2 AU, < 0.3 AU for the predicted ICME rates
 
-# In[160]:
+# In[23]:
 
 
 #make position new in order to be of similar range with ICME rate spline fits
@@ -2032,7 +2038,7 @@ print('days < 0.3 AU:',solo_l03.size)
 
 # ## **Figure 4** PSP Solar Orbiter distance and ICME rate
 
-# In[161]:
+# In[24]:
 
 
 sns.set_context("talk")     
@@ -2130,13 +2136,16 @@ plt.savefig('results/plots_rate/fig4_psp_rate.png', dpi=300)
 
 # Here 3DCORE is used to model synthetic observations of expanding flux ropes close to the Sun
 
-# In[162]:
+# In[326]:
 
 
 import py3dcore
 import heliosat
 from mpl_toolkits.mplot3d import Axes3D
+from matplotlib.colors import LightSource
+from matplotlib.colors import ListedColormap
 from matplotlib import rc
+
 #rc('text', usetex=True)
 #matplotlib.rcParams['text.latex.preamble'] = [r'\usepackage{amsmath}']
 
@@ -2189,7 +2198,7 @@ class PSP_FIXED(heliosat.PSP):
 setattr(heliosat, "PSP_FIXED", PSP_FIXED)
 
 
-# In[163]:
+# In[327]:
 
 
 def measure(obj, sat, t0, t1, frame="HEEQ", bframe="HEEQ", satparams=None):
@@ -2222,6 +2231,17 @@ def measure(obj, sat, t0, t1, frame="HEEQ", bframe="HEEQ", satparams=None):
 
     return t_s, np.sqrt(np.sum(b**2, axis=1)), b
 
+
+#define sun here so it does not need to be recalculated every time
+scale=695510/149597870.700 #Rs in km, AU in km
+# sphere with radius Rs in AU
+u, v = np.mgrid[0:2*np.pi:40j, 0:np.pi:30j]
+x = np.cos(u)*np.sin(v)*scale
+y = np.sin(u)*np.sin(v)*scale
+z = np.cos(v)*scale
+
+
+
 def plot_configure(ax, **kwargs):
     view_azim = kwargs.pop("view_azim", -25)
     view_elev = kwargs.pop("view_elev", 25)
@@ -2231,29 +2251,20 @@ def plot_configure(ax, **kwargs):
 
     ax.set_xlim([-view_radius, view_radius])
     ax.set_ylim([-view_radius, view_radius])
-    ax.set_zlim([-view_radius, view_radius])
+    #adjust scaling as matplotlib lacks automatic aspect ratio setting
+    ax.set_zlim([-view_radius*0.75, view_radius*0.75])    
+    
+    #draw sun        
+    ls = LightSource(azdeg=320, altdeg=40)  
+    ax.plot_surface(x, y, z, rstride=1, cstride=1, color='yellow',lightsource=ls, linewidth=0, antialiased=False)
+    
     
     ax.set_axis_off()
 
 def plot_3dcore(ax, obj, t_snap, **kwargs):
     kwargs["alpha"] = kwargs.pop("alpha", .05)
     kwargs["color"] = kwargs.pop("color", "k")
-    kwargs["lw"] = kwargs.pop("lw", 1)
-
-    ax.scatter(0, 0, 0, color="y", s=500)
-    
-    #Sun 
-    #scale=695510/149597870.700 #Rs in km, AU in km
-    # sphere with radius Rs in AU
-    #u, v = np.mgrid[0:2*np.pi:40j, 0:np.pi:30j]
-    #x = np.cos(u)*np.sin(v)*scale
-    #y = np.sin(u)*np.sin(v)*scale
-    #z = np.cos(v)*scale
-    
-    #ax.plot_surface(x, y, z, rstride=1, cstride=1, color='yellow', linewidth=0, antialiased=False)
-    
-    
-    
+    kwargs["lw"] = kwargs.pop("lw", 1)  
 
     model_obj.propagate(t_snap)
     wf_model = model_obj.visualize_wireframe(index=0)
@@ -2283,7 +2294,7 @@ def plot_traj(ax, sat, t_snap, frame="HEEQ", traj_pos=True, traj_major=4, traj_m
         
     if traj_major and traj_major > 0:
         traj = inst.trajectory([t_snap + datetime.timedelta(hours=i) for i in range(-traj_major, traj_major)], frame)
-        ax.plot(*traj.T, **kwargs)
+        #ax.plot(*traj.T, **kwargs)
         
     if traj_minor and traj_minor > 0:
         traj = inst.trajectory([t_snap + datetime.timedelta(hours=i) for i in range(-traj_minor, traj_minor)], frame)
@@ -2296,41 +2307,99 @@ def plot_traj(ax, sat, t_snap, frame="HEEQ", traj_pos=True, traj_major=4, traj_m
         
         ax.plot(*traj.T, ls=_ls, lw=_lw, **kwargs)
 
+        
+        
+def plot_shift(axis,extent,cx,cy,cz):
+    #shift center of plot
+    axis.set_xbound(cx-extent, cx+extent)
+    axis.set_ybound(cy-extent, cy+extent)
+    axis.set_zbound(cz-extent*0.75, cz+extent*0.75)
 
-# ## **Figure 5**  *******add sun as sphere, solar equatorial plane
+
+# ## **Figure 5** 
 # 
 
-# In[164]:
+# In[329]:
 
 
 sns.set_style('whitegrid')
-fig = plt.figure(figsize=(15, 15),dpi=100)
 
-ax = fig.add_subplot(111, projection='3d')
+fig = plt.figure(figsize=(15, 11),dpi=100)
 
-
-plot_configure(ax, view_azim=125, view_elev=30, view_radius=.15)
-#plot_configure(ax, view_azim=0, view_elev=90, view_radius=.5)
-
-
-plot_3dcore(ax, model_obj, TP_A, color=C_A)
-plot_3dcore_field(ax, model_obj, color=C_A, steps=400, step_size=0.0005, lw=1.5, ls=":")
-plot_traj(ax, "PSP", TP_A, frame="ECLIPJ2000", color=C_A)
-
-plot_3dcore(ax, model_obj, TP_B, color=C_B)
-plot_3dcore_field(ax, model_obj, color=C_B, steps=900, step_size=0.001, lw=1.5, ls=":")
-plot_traj(ax, "PSP", TP_B, frame="ECLIPJ2000", color=C_B,lw=1.5)
-
-plot_traj(ax, "PSP", TP_B, frame="ECLIPJ2000", color="k", traj_pos=False, traj_major=None, traj_minor=144,lw=1.5)
+#define subplot grid
+ax1 = plt.subplot2grid((2, 3), (0, 0),rowspan=2,colspan=2,projection='3d')  
+ax2 = plt.subplot2grid((2, 3), (0, 2),projection='3d')  
+ax3 = plt.subplot2grid((2, 3), (1, 2),projection='3d')  
+#ax4 = plt.subplot2grid((3, 3), (2, 2),projection='3d')  
 
 
-#plt.tight_layout()
+######### tilted view
+plot_configure(ax1, view_azim=125, view_elev=40, view_radius=.08)
 
-plt.savefig('results/plots_rate/fig5_3dcore_visual.pdf', dpi=300)
-plt.savefig('results/plots_rate/fig5_3dcore_visual.png', dpi=300)
+plot_3dcore(ax1, model_obj, TP_A, color=C_A)
+plot_3dcore_field(ax1, model_obj, color=C_A, steps=400, step_size=0.0005, lw=1.0, ls="-")
+plot_traj(ax1, "PSP", TP_A, frame="ECLIPJ2000", color=C_A)
+
+plot_3dcore(ax1, model_obj, TP_B, color=C_B)
+plot_3dcore_field(ax1, model_obj, color=C_B, steps=900, step_size=0.001, lw=1.0, ls="-")
+plot_traj(ax1, "PSP", TP_B, frame="ECLIPJ2000", color=C_B,lw=1.5)
+
+#dotted trajectory
+plot_traj(ax1, "PSP", TP_B, frame="ECLIPJ2000", color="k", traj_pos=False, traj_major=None, traj_minor=144,lw=1.5)
+
+#shift center
+plot_shift(ax1,0.11,-0.05,0.0,-0.1)
 
 
-# In[165]:
+########### top view panel
+plot_configure(ax2, view_azim=145-90, view_elev=90, view_radius=.08)
+plot_traj(ax2, "PSP", TP_B, frame="ECLIPJ2000", color="k", traj_pos=False, traj_major=None, traj_minor=144,lw=1.5)
+plot_3dcore(ax2, model_obj, TP_A, color=C_A)
+plot_3dcore_field(ax2, model_obj, color=C_A, steps=400, step_size=0.0005, lw=1.0, ls="-")
+plot_traj(ax2, "PSP", TP_A, frame="ECLIPJ2000", color=C_A)
+
+plot_3dcore(ax2, model_obj, TP_B, color=C_B)
+plot_3dcore_field(ax2, model_obj, color=C_B, steps=900, step_size=0.001, lw=1.0, ls="-")
+plot_traj(ax2, "PSP", TP_B, frame="ECLIPJ2000", color=C_B,lw=1.5)
+plot_shift(ax2,0.09,-0.11,0.08,0.0)
+
+
+############### edge on view panel
+plot_configure(ax3, view_azim=145-90, view_elev=0, view_radius=.04)
+plot_traj(ax3, "PSP", TP_B, frame="ECLIPJ2000", color="k", traj_pos=False, traj_major=None, traj_minor=144,lw=1.5)
+#plot_3dcore(ax3, model_obj, TP_A, color=C_A)
+#plot_3dcore_field(ax3, model_obj, color=C_A, steps=400, step_size=0.0005, lw=1.0, ls="-")
+plot_traj(ax3, "PSP", TP_A, frame="ECLIPJ2000", color=C_A)
+
+plot_3dcore(ax3, model_obj, TP_B, color=C_B)
+plot_3dcore_field(ax3, model_obj, color=C_B, steps=900, step_size=0.001, lw=1.0, ls="-")
+plot_traj(ax3, "PSP", TP_B, frame="ECLIPJ2000", color=C_B,lw=1.0)
+
+plot_shift(ax3,0.03,-0.05,0.0,0.0)
+
+
+############### face on view panel
+#plot_configure(ax4, view_azim=145, view_elev=0, view_radius=.12)
+#plot_traj(ax4, "PSP", TP_B, frame="ECLIPJ2000", color="k", traj_pos=False, traj_major=None, traj_minor=144,lw=1.5)
+#plot_3dcore(ax4, model_obj, TP_A, color=C_A)
+#plot_3dcore_field(ax4, model_obj, color=C_A, steps=400, step_size=0.0005, lw=1.0, ls="-")
+#plot_traj(ax4, "PSP", TP_A, frame="ECLIPJ2000", color=C_A)
+#plot_3dcore(ax4, model_obj, TP_B, color=C_B)
+#plot_3dcore_field(ax4, model_obj, color=C_B, steps=850, step_size=0.001, lw=1.0, ls="-")
+#plot_traj(ax4, "PSP", TP_B, frame="ECLIPJ2000", color=C_B,lw=1.5)
+#plot_shift(ax3,0.025,-0.03,0.0,0.0)
+
+
+#panel labels
+plt.annotate('(a)',[0.02,0.93],xycoords='figure fraction',fontsize=20)
+plt.annotate('(b)',[0.69,0.93],xycoords='figure fraction',fontsize=20)
+plt.annotate('(c)',[0.69,0.40],xycoords='figure fraction',fontsize=20)
+
+plt.savefig('results/plots_rate/fig5_3dcore_visual.pdf',bbox_inches='tight')
+plt.savefig('results/plots_rate/fig5_3dcore_visual.png', dpi=300,bbox_inches='tight')
+
+
+# In[330]:
 
 
 t1, btot1, bxyz1 = measure(model_obj, "PSP", TP_A - datetime.timedelta(hours=6), TP_A  + datetime.timedelta(hours=6), frame="ECLIPJ2000", bframe="SPP_RTN")
@@ -2339,7 +2408,7 @@ t2, btot2, bxyz2 = measure(model_obj, "PSP", TP_B - datetime.timedelta(hours=12)
 tf, btotf, bxyzf = measure(model_obj, "PSP_FIXED", TP_A - datetime.timedelta(hours=6), TP_A  + datetime.timedelta(hours=6), frame="ECLIPJ2000", bframe="SPP_RTN", satparams=TP_A)
 
 
-# In[166]:
+# In[331]:
 
 
 sns.set_context('talk')
@@ -2394,7 +2463,7 @@ plt.savefig('results/plots_rate/fig6_3dcore_components.pdf', dpi=300)
 plt.savefig('results/plots_rate/fig6_3dcore_components.png', dpi=300)
 
 
-# In[167]:
+# In[332]:
 
 
 def plot_reconstruction(ax, obj, qs, **kwargs):
@@ -2437,14 +2506,14 @@ def reconstruct_path(obj, sat, t0, t1, frame="HEEQ", satparams=None):
     return qs
 
 
-# In[168]:
+# In[333]:
 
 
 QPATH_PSP = reconstruct_path(model_obj, "PSP", TP_A - datetime.timedelta(hours=3), TP_A  + datetime.timedelta(hours=3), frame="ECLIPJ2000")
 QPATH_PSP_FIXED = reconstruct_path(model_obj, "PSP_FIXED", TP_A - datetime.timedelta(hours=3), TP_A  + datetime.timedelta(hours=3), frame="ECLIPJ2000", satparams=TP_A)
 
 
-# In[169]:
+# In[334]:
 
 
 fig = plt.figure(figsize=(20, 20),dpi=50)
@@ -2461,11 +2530,9 @@ plot_reconstruction(ax, model_obj, QPATH_PSP_FIXED, color="m", ls="-", lw=2)
 plt.tight_layout()
 
 
-# ### make animation 
+# ## make simple animation to play with
 
-# In[170]:
-
-
+# In[350]:
 
 
 def plot_configure_anim(ax, **kwargs):
@@ -2473,52 +2540,201 @@ def plot_configure_anim(ax, **kwargs):
     view_elev = kwargs.pop("view_elev", 25)
     view_radius = kwargs.pop("view_radius", .5)
     
+    #draw sun    
+    ax.plot_surface(x, y, z, rstride=1, cstride=1, color='yellow', linewidth=0, antialiased=False)
+    
     ax.view_init(azim=view_azim, elev=view_elev)
 
     ax.set_xlim([-view_radius, view_radius])
     ax.set_ylim([-view_radius, view_radius])
-    ax.set_zlim([-view_radius, view_radius])
+    #adjust scaling as matplotlib lacks automatic aspect ratio setting
+    ax.set_zlim([-view_radius*0.75, view_radius*0.75])    
+    
+    #adjust z axis scaling
+    #ax.set_xlim(-0.5, 0.5)
+    #ax.set_ylim(-0.5, 0.5)
+    #ax.set_zlim(-0.5, 0.5)
+    #ax.set_xscale('linear')
     
     #ax.set_axis_off()
-
-#time for the animation
-tlist=[]
-for i in np.arange(1,2000,200):
-    tlist.append(t_launch+datetime.timedelta(minutes=float(i)))
-
-#sns.set_style('whitegrid')
-
-
-fk=0
-
-for k in np.arange(1,len(tlist)):
-
-    fig = plt.figure(51,figsize=(15, 10),dpi=200)
+    
+def make_frame(k):
+    
+    fig = plt.figure(51,figsize=(15, 15),dpi=50)
     ax = fig.add_subplot(111, projection='3d')
     ax.autoscale(enable=True, axis='both', tight=None)
     
-    plot_configure_anim(ax, view_azim=0, view_elev=90, view_radius=.15)
-    #plot_configure(ax, view_azim=125, view_elev=35, view_radius=.04)
+    #top view
+    #plot_configure_anim(ax, view_azim=0, view_elev=90, view_radius=.15)
 
+    #top view tilted by 30 degree (about elevation of Solar Orbiter)
+    plot_configure_anim(ax, view_azim=145, view_elev=20, view_radius=.15)
+
+
+    
+    #face on view
+    #plot_configure_anim(ax, view_azim=145, view_elev=00, view_radius=.08)
+
+    #edge on view
+    #plot_configure_anim(ax, view_azim=145+90, view_elev=0, view_radius=.08)
+    
+    #tilted view
+    #plot_configure_anim(ax, view_azim=125, view_elev=40, view_radius=.04)
 
     plot_3dcore(ax, model_obj, tlist[k], color=C0)
     #plot_3dcore_field(ax, model_obj, color=C_A, steps=400, step_size=0.0005, lw=1.5, ls=":")
-    plot_traj(ax, "PSP", tlist[k], frame="ECLIPJ2000", color=C_A)
-        
-    framestr = '%05i' % (fk)  
-    fk=fk+1
-    plt.savefig(animdirectory+'/3dcore_psp_'+framestr+'.jpg')
-    print('frame:', fk)
+    
+    #psp position as point
+    plot_traj(ax, "PSP", tlist[k], frame="ECLIPJ2000", color=C_A)  
+    #dotted trajectory
+    plot_traj(ax, "PSP", TP_B, frame="ECLIPJ2000", color="k", traj_pos=False, traj_major=None, traj_minor=144,lw=1.5)
+    
+    #write hours since launch time on top
+    plt.annotate('launch + '+str(np.round((parse_time(tlist[k]).plot_date-parse_time(t_launch).plot_date)*24,2))+' hours',[0.5,0.9],ha='center',xycoords='figure fraction',fontsize=25)
+    
+    plt.tight_layout()
+    framestr = '%05i' % (k)  
+    plt.savefig(animdirectory+'/3dcore_psp_'+framestr+'.jpg',dpi=100)
+    print('frame:', k)
     plt.close(51)
+    
 
-#plt.tight_layout()
+################## make animation    
 
-os.system('ffmpeg -r 5 -i '+str(animdirectory)+'/3dcore_psp_%05d.jpg -b 5000k -r 5 '+str(outputdirectory)+'/3dcore_psp.mp4 -y -loglevel quiet')
+#time for the animation as list
+tlist=[]
+for i in np.arange(1,2500,20):    
+    tlist.append(t_launch+datetime.timedelta(minutes=float(i)))
+
+    
+print('number of frames',len(tlist))
+#sns.set_style('whitegrid')
+
+#clock computing time
+starttime1=time.time()
+
+######## make frames
+#make_frame(83)
 
 
-# ***
+
+#make all frame
+for k in np.arange(1,len(tlist)):
+    make_frame(k)
+
+os.system('ffmpeg -r 5 -i '+str(animdirectory)+'/3dcore_psp_%05d.jpg -b 5000k -r 5 '+str(outputdirectory)+'/moestl2020_3dcore_psp.mp4 -y -loglevel quiet')
+
+print('movie finished in',np.round((time.time()-starttime1)/60,2),' minutes')
+
+
+# ## Make paper animation
+# 
+
+# In[374]:
+
+
+sns.set_style('whitegrid')
+
+
+def make_frame2(k):
+    
+
+
+    fig = plt.figure(52,figsize=(15, 11),dpi=100)
+
+    #define subplot grid
+    ax1 = plt.subplot2grid((2, 3), (0, 0),rowspan=2,colspan=2,projection='3d')  
+    ax2 = plt.subplot2grid((2, 3), (0, 2),projection='3d')  
+    ax3 = plt.subplot2grid((2, 3), (1, 2),projection='3d')  
+    #ax4 = plt.subplot2grid((3, 3), (2, 2),projection='3d')  
+
+
+
+    steps1=400+k*10
+
+    ######### tilted view
+    plot_configure(ax1, view_azim=125, view_elev=40, view_radius=.08)
+
+    plot_3dcore(ax1, model_obj, tlist[k], color=C_A)
+    plot_3dcore_field(ax1, model_obj, color=C_A, steps=steps1, step_size=0.0005, lw=1.0, ls="-")
+
+    plot_traj(ax1, "PSP",  tlist[k], frame="ECLIPJ2000", color=C_A)
+    plot_traj(ax1, "PSP", TP_B, frame="ECLIPJ2000", color="k", traj_pos=False, traj_major=None, traj_minor=144,lw=1.5)
+
+    #shift center
+    plot_shift(ax1,0.11,-0.05,0.0,-0.1)
+
+
+    ########### top view panel
+    plot_configure(ax2, view_azim=145-90, view_elev=90, view_radius=.08)
+
+    plot_3dcore(ax2, model_obj,  tlist[k], color=C_A)
+    plot_3dcore_field(ax2, model_obj, color=C_A, steps=steps1, step_size=0.0005, lw=1.0, ls="-")
+
+    plot_traj(ax2, "PSP",tlist[k], frame="ECLIPJ2000", color=C_A)
+    plot_traj(ax2, "PSP", TP_B, frame="ECLIPJ2000", color="k", traj_pos=False, traj_major=None, traj_minor=144,lw=1.5)
+    plot_shift(ax2,0.09,-0.11,0.08,0.0)
+
+
+    ############### edge on view panel
+    plot_configure(ax3, view_azim=145-90, view_elev=0, view_radius=.04)
+
+    plot_3dcore(ax3, model_obj,  tlist[k], color=C_A)
+    plot_3dcore_field(ax3, model_obj, color=C_A, steps=steps1, step_size=0.0005, lw=1.0, ls="-")
+
+    plot_traj(ax3, "PSP", tlist[k], frame="ECLIPJ2000", color=C_A)
+    plot_traj(ax3, "PSP", TP_B, frame="ECLIPJ2000", color="k", traj_pos=False, traj_major=None, traj_minor=144,lw=1.5)
+
+    plot_shift(ax3,0.03,-0.05,0.0,0.0)
+
+
+    #panel labels
+    plt.annotate('(a)',[0.02,0.93],xycoords='figure fraction',fontsize=20)
+    plt.annotate('(b)',[0.69,0.93],xycoords='figure fraction',fontsize=20)
+    plt.annotate('(c)',[0.69,0.40],xycoords='figure fraction',fontsize=20)
+
+    framestr = '%05i' % (k)  
+    plt.savefig(animdirectory2+'/3dcore_psp_'+framestr+'.jpg',dpi=100,bbox_inches='tight')
+    print('frame:', k)
+    plt.close(52)
+
+
+
+
+################## make animation    
+
+#time for the animation as list
+tlist=[]
+for i in np.arange(1,100,20):    
+    tlist.append(t_launch+datetime.timedelta(minutes=float(i)))
+
+    
+print('number of frames',len(tlist))
+#sns.set_style('whitegrid')
+
+#clock computing time
+starttime1=time.time()
+
+######## make frames
+#make_frame(83)
+
+
+#make all frame
+for k in np.arange(1,len(tlist)):
+    make_frame2(k)
+
+os.system('ffmpeg -r 5 -i '+str(animdirectory2)+'/3dcore_psp_%05d.jpg -b 5000k -r 5 '+str(outputdirectory)+'/moestl2020_3dcore_psp_paper.mp4 -y -loglevel quiet')
+
+print('movie finished in',np.round((time.time()-starttime1)/60,2),' minutes')
+
 
 # ### Play with model settings
+
+# In[ ]:
+
+
+
+
 
 # In[34]:
 
