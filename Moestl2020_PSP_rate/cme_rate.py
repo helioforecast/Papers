@@ -1,64 +1,7 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-# # CME rate
-# 
-# cme_rate.ipynb, cme_rate.py
-# https://github.com/helioforecast/Papers/tree/master/Moestl2020_PSP_rate
-# analyses ICMECAT data for CME rate paper Möstl et al. 2020, ApJ
-# 
-# Author: C. Moestl, IWF Graz, Austria; twitter @chrisoutofspace; https://github.com/cmoestl
-# 
-# For installation of a conda environment to run this code and how to download the data into a directory specified in config.py, see instructions in README.md of the heliocats github repo. Conda dependencies are listed under environment.yml, and pip in requirements.txt. Plots are saved in results/plots_rate/ as png and pdf.
-# 
-# 
-# **Data sources**
-# 
-# McIntosh et al. 2020
-# https://arxiv.org/abs/2006.15263
-# 
-# NOAA solar cycle prediction 2019 (go to "data" on the bottom)
-# https://www.swpc.noaa.gov/products/solar-cycle-progression
-# 
-# Richardson and Cane ICME list
-# http://www.srl.caltech.edu/ACE/ASC/DATA/level3/icmetable2.htm
-# 
-# Sunspot numbers from SIDC SILSO
-# http://www.sidc.be/silso/datafiles
-# 
-# 
-# In situ data need to be downloaded into a directory defined in config.py from this figshare repository:
-# https://doi.org/10.6084/m9.figshare.11973693.v7
-# (which can also be cited by DOI).
-# 
-# ---
-# 
-# **MIT LICENSE**
-# 
-# Copyright 2020, Christian Moestl
-# 
-# Permission is hereby granted, free of charge, to any person obtaining a copy of this 
-# software and associated documentation files (the "Software"), to deal in the Software
-# without restriction, including without limitation the rights to use, copy, modify, 
-# merge, publish, distribute, sublicense, and/or sell copies of the Software, and to 
-# permit persons to whom the Software is furnished to do so, subject to the following 
-# conditions:
-# 
-# The above copyright notice and this permission notice shall be included in all copies 
-# or substantial portions of the Software.
-# 
-# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, 
-# INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A
-# PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT 
-# HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF 
-# CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE 
-# OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-# 
-# 
-# 
-# 
-
-# In[349]:
+# In[ ]:
 
 
 from scipy import stats
@@ -91,7 +34,6 @@ from heliocats import stats as hs
 from heliocats import data as hd
 
 
-
 #where the 6 in situ data files are located is read from input.py
 #as data_path=....
 from config import data_path
@@ -122,7 +64,6 @@ if os.path.isdir(outputdirectory) == False: os.mkdir(outputdirectory)
     
 animdirectory='results/plots_rate/anim'
 if os.path.isdir(animdirectory) == False: os.mkdir(animdirectory)
-    
     
 animdirectory2='results/plots_rate/anim2'
 if os.path.isdir(animdirectory2) == False: os.mkdir(animdirectory2)
@@ -2136,7 +2077,7 @@ plt.savefig('results/plots_rate/fig4_psp_rate.png', dpi=300)
 
 # Here 3DCORE is used to model synthetic observations of expanding flux ropes close to the Sun
 
-# In[326]:
+# In[164]:
 
 
 import py3dcore
@@ -2145,6 +2086,7 @@ from mpl_toolkits.mplot3d import Axes3D
 from matplotlib.colors import LightSource
 from matplotlib.colors import ListedColormap
 from matplotlib import rc
+import multiprocessing
 
 #rc('text', usetex=True)
 #matplotlib.rcParams['text.latex.preamble'] = [r'\usepackage{amsmath}']
@@ -2198,7 +2140,7 @@ class PSP_FIXED(heliosat.PSP):
 setattr(heliosat, "PSP_FIXED", PSP_FIXED)
 
 
-# In[327]:
+# In[74]:
 
 
 def measure(obj, sat, t0, t1, frame="HEEQ", bframe="HEEQ", satparams=None):
@@ -2256,7 +2198,7 @@ def plot_configure(ax, **kwargs):
     
     #draw sun        
     ls = LightSource(azdeg=320, altdeg=40)  
-    ax.plot_surface(x, y, z, rstride=1, cstride=1, color='yellow',lightsource=ls, linewidth=0, antialiased=False)
+    ax.plot_surface(x, y, z, rstride=1, cstride=1, color='yellow',lightsource=ls, linewidth=0, antialiased=False,zorder=5)
     
     
     ax.set_axis_off()
@@ -2268,7 +2210,7 @@ def plot_3dcore(ax, obj, t_snap, **kwargs):
 
     model_obj.propagate(t_snap)
     wf_model = model_obj.visualize_wireframe(index=0)
-    ax.plot_wireframe(*wf_model.T, **kwargs)
+    ax.plot_wireframe(*wf_model.T, **kwargs,zorder=3)
 
 def plot_3dcore_field(ax, obj, steps=500, step_size=0.005, **kwargs):
     q0 = kwargs.get("q0", np.array([1, .1, np.pi/2], dtype=np.float32)).astype(np.float32)
@@ -2319,7 +2261,7 @@ def plot_shift(axis,extent,cx,cy,cz):
 # ## **Figure 5** 
 # 
 
-# In[329]:
+# In[5]:
 
 
 sns.set_style('whitegrid')
@@ -2399,16 +2341,17 @@ plt.savefig('results/plots_rate/fig5_3dcore_visual.pdf',bbox_inches='tight')
 plt.savefig('results/plots_rate/fig5_3dcore_visual.png', dpi=300,bbox_inches='tight')
 
 
-# In[330]:
+# In[96]:
 
 
 t1, btot1, bxyz1 = measure(model_obj, "PSP", TP_A - datetime.timedelta(hours=6), TP_A  + datetime.timedelta(hours=6), frame="ECLIPJ2000", bframe="SPP_RTN")
 t2, btot2, bxyz2 = measure(model_obj, "PSP", TP_B - datetime.timedelta(hours=12), TP_B  + datetime.timedelta(hours=12), frame="ECLIPJ2000", bframe="SPP_RTN")
+t3, btot3, bxyz3 = measure(model_obj, "PSP", TP_B - datetime.timedelta(hours=48), TP_B  + datetime.timedelta(hours=48), frame="ECLIPJ2000", bframe="SPP_RTN")
 
 tf, btotf, bxyzf = measure(model_obj, "PSP_FIXED", TP_A - datetime.timedelta(hours=6), TP_A  + datetime.timedelta(hours=6), frame="ECLIPJ2000", bframe="SPP_RTN", satparams=TP_A)
 
 
-# In[331]:
+# In[97]:
 
 
 sns.set_context('talk')
@@ -2463,7 +2406,7 @@ plt.savefig('results/plots_rate/fig6_3dcore_components.pdf', dpi=300)
 plt.savefig('results/plots_rate/fig6_3dcore_components.png', dpi=300)
 
 
-# In[332]:
+# In[98]:
 
 
 def plot_reconstruction(ax, obj, qs, **kwargs):
@@ -2506,14 +2449,14 @@ def reconstruct_path(obj, sat, t0, t1, frame="HEEQ", satparams=None):
     return qs
 
 
-# In[333]:
+# In[99]:
 
 
 QPATH_PSP = reconstruct_path(model_obj, "PSP", TP_A - datetime.timedelta(hours=3), TP_A  + datetime.timedelta(hours=3), frame="ECLIPJ2000")
 QPATH_PSP_FIXED = reconstruct_path(model_obj, "PSP_FIXED", TP_A - datetime.timedelta(hours=3), TP_A  + datetime.timedelta(hours=3), frame="ECLIPJ2000", satparams=TP_A)
 
 
-# In[334]:
+# In[100]:
 
 
 fig = plt.figure(figsize=(20, 20),dpi=50)
@@ -2530,9 +2473,186 @@ plot_reconstruction(ax, model_obj, QPATH_PSP_FIXED, color="m", ls="-", lw=2)
 plt.tight_layout()
 
 
+# ## Make paper animation
+# 
+
+# In[ ]:
+
+
+sns.set_style('whitegrid')
+sns.set_style("ticks",{'grid.linestyle': '--'})
+
+
+
+def make_frame2(k):
+    
+    fig = plt.figure(52,figsize=(19.2, 10.8),dpi=100)
+    
+    #define subplot grid
+    ax1 = plt.subplot2grid((3, 3), (0, 0),rowspan=2,colspan=2,projection='3d')  
+    ax2 = plt.subplot2grid((3, 3), (0, 2),projection='3d')  
+    ax3 = plt.subplot2grid((3, 3), (1, 2),projection='3d')  
+    ax4 = plt.subplot2grid((3, 3), (2, 0))  
+
+    
+    
+    #ax4 = plt.subplot2grid((3, 3), (2, 2),projection='3d')  
+
+    #manually set axes positions
+    #https://matplotlib.org/api/_as_gen/matplotlib.axes.Axes.set_position.html#matplotlib.axes.Axes.set_position
+    ax1.set_position([0,0,0.6,1], which='both')
+    ax2.set_position([0.65,0.35,0.35,0.65], which='both')
+    ax3.set_position([0.6,0,0.4,0.4], which='both')
+    ax4.set_position([0.1,0.1,0.5,0.25], which='both')
+
+
+    
+    steps1=400+k*60
+    stepsize1=0.0005
+
+    ######### tilted view
+    plot_configure(ax1, view_azim=125, view_elev=40, view_radius=.08)
+
+    #solar equatorial plane
+    #for p in np.arange(-1,1,0.05):
+    #    ax1.plot([-1,1],[p,p],[0,0],lw=0.5,color='black', alpha=0.4,linestyle='--',zorder=0 )
+    #    ax1.plot([p,p],[-1,1],[0,0],lw=0.5,color='black', alpha=0.4,linestyle='--',zorder=0 )
+
+    
+    
+
+    plot_3dcore(ax1, model_obj, tlist[k], color=C_A)
+    #plot_3dcore_field(ax1, model_obj, color=C_A, steps=steps1, step_size=stepsize1, lw=1.0, ls="-")
+
+    plot_traj(ax1, "PSP",  tlist[k], frame="ECLIPJ2000", color=C_A)
+    plot_traj(ax1, "PSP", TP_B, frame="ECLIPJ2000", color="k", traj_pos=False, traj_major=None, traj_minor=144,lw=1.5)
+
+    #shift center
+    plot_shift(ax1,0.11,-0.05,0.0,-0.1)
+
+
+    ########### top view panel
+    plot_configure(ax2, view_azim=145-90, view_elev=90, view_radius=.08)
+
+    plot_3dcore(ax2, model_obj,  tlist[k], color=C_A)
+    #plot_3dcore_field(ax2, model_obj, color=C_A, steps=steps1,step_size=stepsize1, lw=1.0, ls="-")
+
+    plot_traj(ax2, "PSP",tlist[k], frame="ECLIPJ2000", color=C_A)
+    plot_traj(ax2, "PSP", TP_B, frame="ECLIPJ2000", color="k", traj_pos=False, traj_major=None, traj_minor=144,lw=1.5)
+    plot_shift(ax2,0.09,-0.11,0.08,0.0)
+
+
+    ############### edge on view panel
+    plot_configure(ax3, view_azim=145-90, view_elev=0, view_radius=.04)
+
+    plot_3dcore(ax3, model_obj,  tlist[k], color=C_A)
+    #plot_3dcore_field(ax3, model_obj, color=C_A, steps=steps1, step_size=stepsize1, lw=1.0, ls="-")
+
+    plot_traj(ax3, "PSP", tlist[k], frame="ECLIPJ2000", color=C_A)
+    plot_traj(ax3, "PSP", TP_B, frame="ECLIPJ2000", color="k", traj_pos=False, traj_major=None, traj_minor=144,lw=1.5)
+
+    plot_shift(ax3,0.03,-0.05,0.0,0.0)
+    
+    
+    
+    ############################## magnetic field panel
+    
+        
+    ax4.plot(simtime, btot3, color=C0, label="$|B|$")
+    ax4.plot(simtime, bxyz3[:, 0], color=C1, label="$B_R$")
+    ax4.plot(simtime, bxyz3[:, 1], color=C2, label="$B_T$")
+    ax4.plot(simtime, bxyz3[:, 2], color=C3, label="$B_N$")
+
+    
+    ax4.legend(loc="lower right", fontsize=12,ncol=4,edgecolor='white')
+    #ax4.xaxis.set_major_formatter(matplotlib.dates.DateFormatter('%b %d %H:%M'))
+    ax4.set_ylabel('B [nT]')
+    ax4.set_ylim(-1300,1300)
+    #ax4.set_xlim(datetime.datetime(2022,6,1,23,0),datetime.datetime(2022,6,3,4,0))
+
+    #line at current time
+    ax4.plot([frametime[k],frametime[k]], [-2000,2000], color='black',linewidth=1,alpha=0.8)
+    ax4.set_xlabel('hours since launch time $t_0$')
+    ax4.xaxis.set_major_locator(matplotlib.ticker.MultipleLocator(5))
+    ax4.xaxis.set_minor_locator(matplotlib.ticker.MultipleLocator(1))
+    ax4.yaxis.set_major_locator(matplotlib.ticker.MultipleLocator(500))
+    ax4.set_xlim(0,30)
+    ax4.grid(True)
+    
+
+
+    #write hours since launch time on top
+    plt.annotate('$t_0$ +',[0.46,0.45],ha='center',xycoords='figure fraction',fontsize=20)
+    plt.annotate(str(frametime[k]),[0.5,0.45],ha='center',xycoords='figure fraction',fontsize=20)
+    plt.annotate('hours',[0.54,0.45],ha='center',xycoords='figure fraction',fontsize=20)
+   
+
+    #panel labels
+    #plt.annotate('(a)',[0.02,0.93],xycoords='figure fraction',fontsize=20)
+    #plt.annotate('(b)',[0.59,0.93],xycoords='figure fraction',fontsize=20)
+    #plt.annotate('(c)',[0.59,0.40],xycoords='figure fraction',fontsize=20)
+
+    framestr = '%05i' % (k)  
+    plt.savefig(animdirectory2+'/3dcore_psp_'+framestr+'.jpg',dpi=100)
+    print('frame:', k)
+    plt.close(52)
+
+
+
+################## make animation    
+
+#time for the animation as list
+tlist=[]
+for i in np.arange(1,2200,5):    
+    tlist.append(t_launch+datetime.timedelta(minutes=float(i)))
+    
+print('number of frames',len(tlist))
+#sns.set_style('whitegrid')
+
+
+#simulation time since launch
+frametime=np.round((parse_time(tlist).plot_date-parse_time(t_launch).plot_date)*24,1)
+
+simtime=np.round((parse_time(t3).plot_date-parse_time(t_launch).plot_date)*24,4)
+
+#clock computing time
+starttime1=time.time()
+
+######## make frames
+#make_frame2(40)
+
+
+############################## multi
+
+#number of processes depends on your machines memory; check with command line "top"
+#how much memory is used by all your processesii
+nr_of_processes_used=100
+print('Using multiprocessing, nr of cores',multiprocessing.cpu_count(),       'with nr of processes used: ',nr_of_processes_used)
+
+#run multiprocessing pool to make all movie frames, depending only on frame number
+pool = multiprocessing.Pool(processes=nr_of_processes_used)
+input=[i for i in range(len(tlist))]
+pool.map(make_frame2, input)
+pool.close()
+# pool.join()
+
+
+################################## single
+
+#make all frames
+#for k in np.arange(1,len(tlist)):
+#    make_frame2(k)
+    
+#######################################    
+
+os.system('ffmpeg -r 25 -i '+animdirectory2+'/3dcore_psp_%05d.jpg -b 5000k -r 25 '+outputdirectory+'/moestl2020_3dcore_psp_paper.mp4 -y -loglevel quiet')
+
+print('movie finished in',np.round((time.time()-starttime1)/60,2),' minutes')
+
+
 # ## make simple animation to play with
 
-# In[350]:
+# In[384]:
 
 
 def plot_configure_anim(ax, **kwargs):
@@ -2627,114 +2747,53 @@ os.system('ffmpeg -r 5 -i '+str(animdirectory)+'/3dcore_psp_%05d.jpg -b 5000k -r
 print('movie finished in',np.round((time.time()-starttime1)/60,2),' minutes')
 
 
-# ## Make paper animation
-# 
-
-# In[374]:
+# In[ ]:
 
 
-sns.set_style('whitegrid')
+### multprocessing code
 
-
-def make_frame2(k):
-    
-
-
-    fig = plt.figure(52,figsize=(15, 11),dpi=100)
-
-    #define subplot grid
-    ax1 = plt.subplot2grid((2, 3), (0, 0),rowspan=2,colspan=2,projection='3d')  
-    ax2 = plt.subplot2grid((2, 3), (0, 2),projection='3d')  
-    ax3 = plt.subplot2grid((2, 3), (1, 2),projection='3d')  
-    #ax4 = plt.subplot2grid((3, 3), (2, 2),projection='3d')  
-
-
-
-    steps1=400+k*10
-
-    ######### tilted view
-    plot_configure(ax1, view_azim=125, view_elev=40, view_radius=.08)
-
-    plot_3dcore(ax1, model_obj, tlist[k], color=C_A)
-    plot_3dcore_field(ax1, model_obj, color=C_A, steps=steps1, step_size=0.0005, lw=1.0, ls="-")
-
-    plot_traj(ax1, "PSP",  tlist[k], frame="ECLIPJ2000", color=C_A)
-    plot_traj(ax1, "PSP", TP_B, frame="ECLIPJ2000", color="k", traj_pos=False, traj_major=None, traj_minor=144,lw=1.5)
-
-    #shift center
-    plot_shift(ax1,0.11,-0.05,0.0,-0.1)
-
-
-    ########### top view panel
-    plot_configure(ax2, view_azim=145-90, view_elev=90, view_radius=.08)
-
-    plot_3dcore(ax2, model_obj,  tlist[k], color=C_A)
-    plot_3dcore_field(ax2, model_obj, color=C_A, steps=steps1, step_size=0.0005, lw=1.0, ls="-")
-
-    plot_traj(ax2, "PSP",tlist[k], frame="ECLIPJ2000", color=C_A)
-    plot_traj(ax2, "PSP", TP_B, frame="ECLIPJ2000", color="k", traj_pos=False, traj_major=None, traj_minor=144,lw=1.5)
-    plot_shift(ax2,0.09,-0.11,0.08,0.0)
-
-
-    ############### edge on view panel
-    plot_configure(ax3, view_azim=145-90, view_elev=0, view_radius=.04)
-
-    plot_3dcore(ax3, model_obj,  tlist[k], color=C_A)
-    plot_3dcore_field(ax3, model_obj, color=C_A, steps=steps1, step_size=0.0005, lw=1.0, ls="-")
-
-    plot_traj(ax3, "PSP", tlist[k], frame="ECLIPJ2000", color=C_A)
-    plot_traj(ax3, "PSP", TP_B, frame="ECLIPJ2000", color="k", traj_pos=False, traj_major=None, traj_minor=144,lw=1.5)
-
-    plot_shift(ax3,0.03,-0.05,0.0,0.0)
-
-
-    #panel labels
-    plt.annotate('(a)',[0.02,0.93],xycoords='figure fraction',fontsize=20)
-    plt.annotate('(b)',[0.69,0.93],xycoords='figure fraction',fontsize=20)
-    plt.annotate('(c)',[0.69,0.40],xycoords='figure fraction',fontsize=20)
-
-    framestr = '%05i' % (k)  
-    plt.savefig(animdirectory2+'/3dcore_psp_'+framestr+'.jpg',dpi=100,bbox_inches='tight')
-    print('frame:', k)
-    plt.close(52)
-
-
-
-
-################## make animation    
-
-#time for the animation as list
-tlist=[]
-for i in np.arange(1,100,20):    
-    tlist.append(t_launch+datetime.timedelta(minutes=float(i)))
-
-    
-print('number of frames',len(tlist))
-#sns.set_style('whitegrid')
-
-#clock computing time
-starttime1=time.time()
-
-######## make frames
-#make_frame(83)
-
-
-#make all frame
-for k in np.arange(1,len(tlist)):
-    make_frame2(k)
-
-os.system('ffmpeg -r 5 -i '+str(animdirectory2)+'/3dcore_psp_%05d.jpg -b 5000k -r 5 '+str(outputdirectory)+'/moestl2020_3dcore_psp_paper.mp4 -y -loglevel quiet')
-
-print('movie finished in',np.round((time.time()-starttime1)/60,2),' minutes')
-
-
-# ### Play with model settings
 
 # In[ ]:
 
 
+######################## make frames
+k_all=1
+
+#for debugging
+#k_all=1000
+# make_frame(1)
+#for i in np.arange(6454,6576,1):
+#    make_frame(i)
 
 
+print(k_all,' frames in total')
+print() 
+
+
+#number of processes depends on your machines memory; check with command line "top"
+#how much memory is used by all your processesii
+nr_of_processes_used=50
+print('Using multiprocessing, nr of cores',multiprocessing.cpu_count(),       'with nr of processes used: ',nr_of_processes_used)
+
+#run multiprocessing pool to make all movie frames, depending only on frame number
+pool = multiprocessing.Pool(processes=nr_of_processes_used)
+input=[i for i in range(k_all)]
+#input=[i for i in np.arange(6721,6851,1)]
+pool.map(make_frame, input)
+pool.close()
+# pool.join()
+
+
+print('time in min: ',np.round((time.time()-start_time)/60))
+print('plots done, frames saved in ',outputdirectory)
+ 
+#os.system(ffmpeg_path+'ffmpeg -r 25 -i '+str(outputdirectory)+'/pos_anim_%05d.jpg -b 5000k \
+#    -r 25 '+str(animdirectory)+'/psp_sta_wind_oct_2018_dec_2019.mp4 -y -loglevel quiet')
+
+#print('movie done, saved in ',animdirectory)
+
+
+# ### Play with model settings
 
 # In[34]:
 
