@@ -1,7 +1,62 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-# In[ ]:
+# # ICME rate for solar cycle 25 and PSP flux rope double crossings
+# 
+# ### jupyter notebook 1 of 2 
+# 
+# cme_rate.ipynb, cme_rate.py
+# https://github.com/helioforecast/Papers/tree/master/Moestl2020_PSP_rate
+# analyses ICMECAT data for CME rate paper Möstl et al. 2020, ApJ
+# 
+# Author: C. Moestl, IWF Graz, Austria; twitter @chrisoutofspace; https://github.com/cmoestl
+# 
+# For installation of a conda environment to run this code and how to download the data into a directory specified in config.py, see instructions in README.md of the heliocats github repo. Conda dependencies are listed under environment.yml, and pip in requirements.txt. Plots are saved in results/plots_rate/ as png and pdf.
+# 
+# 
+# **Data sources**
+# 
+# McIntosh et al. 2020
+# https://arxiv.org/abs/2006.15263
+# 
+# NOAA solar cycle prediction 2019 (go to "data" on the bottom)
+# https://www.swpc.noaa.gov/products/solar-cycle-progression
+# 
+# Richardson and Cane ICME list
+# http://www.srl.caltech.edu/ACE/ASC/DATA/level3/icmetable2.htm
+# 
+# Sunspot numbers from SIDC SILSO
+# http://www.sidc.be/silso/datafiles
+# 
+# 
+# In situ data need to be downloaded into a directory defined in config.py from this figshare repository:
+# https://doi.org/10.6084/m9.figshare.11973693.v7
+# (which can also be cited by DOI).
+# 
+# ---
+# 
+# **MIT LICENSE**
+# 
+# Copyright 2020, Christian Moestl
+# 
+# Permission is hereby granted, free of charge, to any person obtaining a copy of this 
+# software and associated documentation files (the "Software"), to deal in the Software
+# without restriction, including without limitation the rights to use, copy, modify, 
+# merge, publish, distribute, sublicense, and/or sell copies of the Software, and to 
+# permit persons to whom the Software is furnished to do so, subject to the following 
+# conditions:
+# 
+# The above copyright notice and this permission notice shall be included in all copies 
+# or substantial portions of the Software.
+# 
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, 
+# INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A
+# PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT 
+# HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF 
+# CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE 
+# OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
+# In[1]:
 
 
 from scipy import stats
@@ -2077,7 +2132,7 @@ plt.savefig('results/plots_rate/fig4_psp_rate.png', dpi=300)
 
 # Here 3DCORE is used to model synthetic observations of expanding flux ropes close to the Sun
 
-# In[164]:
+# In[2]:
 
 
 import py3dcore
@@ -2140,7 +2195,7 @@ class PSP_FIXED(heliosat.PSP):
 setattr(heliosat, "PSP_FIXED", PSP_FIXED)
 
 
-# In[74]:
+# In[3]:
 
 
 def measure(obj, sat, t0, t1, frame="HEEQ", bframe="HEEQ", satparams=None):
@@ -2261,7 +2316,7 @@ def plot_shift(axis,extent,cx,cy,cz):
 # ## **Figure 5** 
 # 
 
-# In[5]:
+# In[4]:
 
 
 sns.set_style('whitegrid')
@@ -2341,7 +2396,7 @@ plt.savefig('results/plots_rate/fig5_3dcore_visual.pdf',bbox_inches='tight')
 plt.savefig('results/plots_rate/fig5_3dcore_visual.png', dpi=300,bbox_inches='tight')
 
 
-# In[96]:
+# In[5]:
 
 
 t1, btot1, bxyz1 = measure(model_obj, "PSP", TP_A - datetime.timedelta(hours=6), TP_A  + datetime.timedelta(hours=6), frame="ECLIPJ2000", bframe="SPP_RTN")
@@ -2351,7 +2406,7 @@ t3, btot3, bxyz3 = measure(model_obj, "PSP", TP_B - datetime.timedelta(hours=48)
 tf, btotf, bxyzf = measure(model_obj, "PSP_FIXED", TP_A - datetime.timedelta(hours=6), TP_A  + datetime.timedelta(hours=6), frame="ECLIPJ2000", bframe="SPP_RTN", satparams=TP_A)
 
 
-# In[97]:
+# In[6]:
 
 
 sns.set_context('talk')
@@ -2406,7 +2461,7 @@ plt.savefig('results/plots_rate/fig6_3dcore_components.pdf', dpi=300)
 plt.savefig('results/plots_rate/fig6_3dcore_components.png', dpi=300)
 
 
-# In[98]:
+# In[7]:
 
 
 def plot_reconstruction(ax, obj, qs, **kwargs):
@@ -2449,14 +2504,14 @@ def reconstruct_path(obj, sat, t0, t1, frame="HEEQ", satparams=None):
     return qs
 
 
-# In[99]:
+# In[8]:
 
 
 QPATH_PSP = reconstruct_path(model_obj, "PSP", TP_A - datetime.timedelta(hours=3), TP_A  + datetime.timedelta(hours=3), frame="ECLIPJ2000")
 QPATH_PSP_FIXED = reconstruct_path(model_obj, "PSP_FIXED", TP_A - datetime.timedelta(hours=3), TP_A  + datetime.timedelta(hours=3), frame="ECLIPJ2000", satparams=TP_A)
 
 
-# In[100]:
+# In[9]:
 
 
 fig = plt.figure(figsize=(20, 20),dpi=50)
@@ -2476,7 +2531,7 @@ plt.tight_layout()
 # ## Make paper animation
 # 
 
-# In[ ]:
+# In[10]:
 
 
 sns.set_style('whitegrid')
