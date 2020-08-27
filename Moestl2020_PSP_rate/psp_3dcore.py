@@ -44,7 +44,7 @@
 
 # Here 3DCORE is used to model synthetic observations of expanding flux ropes close to the Sun
 
-# In[ ]:
+# In[1]:
 
 
 import sys
@@ -55,8 +55,6 @@ import numpy as np
 from datetime import timedelta
 import astropy
 import astropy.constants as const
-from sunpy.time import parse_time
-import sunpy.time
 import time
 import pickle
 import seaborn as sns
@@ -68,6 +66,10 @@ import importlib
 import heliopy.spice as spice
 import heliopy.data.spice as spicedata
 import multiprocessing
+import sunpy
+import sunpy.time
+from sunpy.time import parse_time
+
 
 
 import py3dcore
@@ -77,7 +79,6 @@ from mpl_toolkits.mplot3d import Axes3D
 from matplotlib.colors import LightSource
 from matplotlib.colors import ListedColormap
 from matplotlib import rc
-
 
 
 #Convert this notebook to a script with jupyter nbconvert --to script cme_rate.ipynb
@@ -105,14 +106,11 @@ if os.path.isdir(animdirectory) == False: os.mkdir(animdirectory)
 animdirectory2='results/plots_rate/anim2'
 if os.path.isdir(animdirectory2) == False: os.mkdir(animdirectory2)
     
-
-
-
 #rc('text', usetex=True)
 #matplotlib.rcParams['text.latex.preamble'] = [r'\usepackage{amsmath}']
 
 
-# In[ ]:
+# In[2]:
 
 
 ############### Model Settings
@@ -164,7 +162,7 @@ class PSP_FIXED(heliosat.PSP):
 setattr(heliosat, "PSP_FIXED", PSP_FIXED)
 
 
-# In[ ]:
+# In[3]:
 
 
 def measure(obj, sat, t0, t1, frame="HEEQ", bframe="HEEQ", satparams=None):
@@ -284,7 +282,7 @@ def plot_shift(axis,extent,cx,cy,cz):
 
 # ## **Figure 5** 
 
-# In[ ]:
+# In[4]:
 
 
 sns.set_style('whitegrid')
@@ -366,74 +364,98 @@ plt.savefig('results/plots_rate/fig5_3dcore_visual.png', dpi=300,bbox_inches='ti
 
 # ### measure magnetic fields
 
-# In[ ]:
+# In[5]:
 
 
-t1, btot1, bxyz1 = measure(model_obj, "PSP", TP_A - datetime.timedelta(hours=6), TP_A  + datetime.timedelta(hours=6), frame="ECLIPJ2000", bframe="SPP_RTN")
-t2, btot2, bxyz2 = measure(model_obj, "PSP", TP_B - datetime.timedelta(hours=12), TP_B  + datetime.timedelta(hours=12), frame="ECLIPJ2000", bframe="SPP_RTN")
-t3, btot3, bxyz3 = measure(model_obj, "PSP", TP_B - datetime.timedelta(hours=48), TP_B  + datetime.timedelta(hours=48), frame="ECLIPJ2000", bframe="SPP_RTN")
+t1, btot1, bxyz1 = measure(model_obj, "PSP",  t_launch, TP_A  + datetime.timedelta(hours=6), frame="ECLIPJ2000", bframe="SPP_RTN")
+t2, btot2, bxyz2 = measure(model_obj, "PSP",  t_launch, TP_B  + datetime.timedelta(hours=12), frame="ECLIPJ2000", bframe="SPP_RTN")
+t3, btot3, bxyz3 = measure(model_obj, "PSP", t_launch, TP_B  + datetime.timedelta(hours=72), frame="ECLIPJ2000", bframe="SPP_RTN")
 
-tf, btotf, bxyzf = measure(model_obj, "PSP_FIXED", TP_A - datetime.timedelta(hours=6), TP_A  + datetime.timedelta(hours=6), frame="ECLIPJ2000", bframe="SPP_RTN", satparams=TP_A)
+tf, btotf, bxyzf = measure(model_obj, "PSP_FIXED", t_launch, TP_A  + datetime.timedelta(hours=6), frame="ECLIPJ2000", bframe="SPP_RTN", satparams=TP_A)
 
 
-# ### plot figure
+# ## **Figure 6** 
 
-# In[ ]:
+# In[6]:
 
 
 sns.set_context('talk')
 sns.set_style('whitegrid')
 
+fsize1=23
+
+#simulation time in hours
+simtime1=np.round((parse_time(t1).plot_date-parse_time(t_launch).plot_date)*24,4)
+
 fig = plt.figure(figsize=(13, 12),dpi=70)
 
 ax1 = fig.add_subplot(211)
-ax1.set_title("1st encounter (apex)")
+ax1.set_title("First encounter (apex)",fontsize=fsize1)
 
-ax1.plot(t1, btot1, color=C0, label="$|B|$")
-ax1.plot(t1, bxyz1[:, 0], color=C1, label="$B_R$")
-ax1.plot(t1, bxyz1[:, 1], color=C2, label="$B_T$")
-ax1.plot(t1, bxyz1[:, 2], color=C3, label="$B_N$")
+ax1.plot(simtime1, btot1, color=C0, label="$|B|$")
+ax1.plot(simtime1, bxyz1[:, 0], color=C1, label="$B_R$")
+ax1.plot(simtime1, bxyz1[:, 1], color=C2, label="$B_T$")
+ax1.plot(simtime1, bxyz1[:, 2], color=C3, label="$B_N$")
 
-ax1.plot(tf, btotf, color=C0, linestyle='--')
-ax1.plot(tf, bxyzf[:, 0], color=C1, linestyle='--')
-ax1.plot(tf, bxyzf[:, 1], color=C2, linestyle='--')
-ax1.plot(tf, bxyzf[:, 2], color=C3, linestyle='--')
+ax1.plot(simtime1, btotf, color=C0, linestyle='--')
+ax1.plot(simtime1, bxyzf[:, 0], color=C1, linestyle='--')
+ax1.plot(simtime1, bxyzf[:, 1], color=C2, linestyle='--')
+ax1.plot(simtime1, bxyzf[:, 2], color=C3, linestyle='--')
 
-ax1.legend(loc="lower right", fontsize=16,ncol=4)
-ax1.xaxis.set_major_formatter(matplotlib.dates.DateFormatter('%b %d %H:%M'))
-ax1.set_ylabel('B [nT]')
-plt.ylim(-1300,1300)
-plt.xlim(datetime.datetime(2022,6,1,23,0),datetime.datetime(2022,6,2,4,0))
+ax1.legend(loc="lower right", fontsize=fsize1,ncol=1)
+ax1.set_ylabel('B [nT]',fontsize=fsize1)
+ax1.set_ylim(-1250,1250)
+ax1.set_xlim(3,8)
+#plt.xlim(datetime.datetime(2022,6,1,23,0),datetime.datetime(2022,6,2,4,0))
+#ax1.xaxis.set_major_formatter(matplotlib.dates.DateFormatter('%b %d %H:%M'))
+ax1.tick_params(labelsize=fsize1)
+
+#ax1.set_xlabel('hours since launch time $t_0$')
+ax1.xaxis.set_major_locator(matplotlib.ticker.MultipleLocator(1))
+#ax1.xaxis.set_minor_locator(matplotlib.ticker.MultipleLocator(1))
+ax1.yaxis.set_major_locator(matplotlib.ticker.MultipleLocator(500))
 
 
+
+#simulation time in hours
+simtime2=np.round((parse_time(t2).plot_date-parse_time(t_launch).plot_date)*24,4)
 
 ax2 = fig.add_subplot(212)
-ax2.set_title("2nd encounter (leg)")
+ax2.set_title("Second encounter (leg)",fontsize=fsize1)
 
-ax2.plot(t2, btot2, color=C0, label="$|B|$")
-ax2.plot(t2, bxyz2[:, 0], color=C1, label="$B_R$")
-ax2.plot(t2, bxyz2[:, 1], color=C2, label="$B_T$")
-ax2.plot(t2, bxyz2[:, 2], color=C3, label="$B_N$")
+ax2.plot(simtime2, btot2, color=C0, label="$|B|$")
+ax2.plot(simtime2, bxyz2[:, 0], color=C1, label="$B_R$")
+ax2.plot(simtime2, bxyz2[:, 1], color=C2, label="$B_T$")
+ax2.plot(simtime2, bxyz2[:, 2], color=C3, label="$B_N$")
 
-ax2.legend(loc="lower right", fontsize=16,ncol=4)
-ax2.xaxis.set_major_formatter(matplotlib.dates.DateFormatter('%b %d %H:%M'))
-ax2.set_xlabel('simulation time')
-ax2.set_ylabel('B [nT]')
-plt.ylim(-1300,1300)
-plt.xlim(datetime.datetime(2022,6,2,21,0),datetime.datetime(2022,6,3,2,0))
+ax2.legend(loc="lower right", fontsize=fsize1,ncol=1)
+#ax2.xaxis.set_major_formatter(matplotlib.dates.DateFormatter('%b %d %H:%M'))
+ax2.set_xlabel('simulation time',fontsize=fsize1)
+ax2.set_ylabel('B [nT]',fontsize=fsize1)
+ax2.set_ylim(-1250,1250)
+ax2.set_xlim(3+22,8+22)
+#plt.xlim(datetime.datetime(2022,6,2,21,0),datetime.datetime(2022,6,3,2,0))
 
+
+ax2.set_xlabel('hours since launch time $t_0$')
+ax2.xaxis.set_major_locator(matplotlib.ticker.MultipleLocator(1))
+#ax1.xaxis.set_minor_locator(matplotlib.ticker.MultipleLocator(1))
+ax2.yaxis.set_major_locator(matplotlib.ticker.MultipleLocator(500))
+
+ax2.tick_params(labelsize=fsize1)
 
 plt.tight_layout()
 
-
-plt.annotate('(a)',[0.01,0.965],xycoords='figure fraction',weight='bold')
-plt.annotate('(b)',[0.01,0.475],xycoords='figure fraction',weight='bold')
+plt.annotate('(a)',[0.01,0.965],xycoords='figure fraction',weight='bold',fontsize=fsize1)
+plt.annotate('(b)',[0.01,0.475],xycoords='figure fraction',weight='bold',fontsize=fsize1)
 
 plt.savefig('results/plots_rate/fig6_3dcore_components.pdf', dpi=300)
 plt.savefig('results/plots_rate/fig6_3dcore_components.png', dpi=300)
 
 
-# In[ ]:
+# ### visualize PSP trajectory through the flux rope
+
+# In[7]:
 
 
 def plot_reconstruction(ax, obj, qs, **kwargs):
@@ -492,7 +514,7 @@ plot_reconstruction(ax, model_obj, QPATH_PSP_FIXED, color="m", ls="-", lw=2)
 plt.tight_layout()
 
 
-# ## Figure 5 animation for paper
+# ## **Figure 5** animation for paper
 
 # In[ ]:
 
@@ -500,6 +522,18 @@ plt.tight_layout()
 sns.set_style('whitegrid')
 sns.set_style("ticks",{'grid.linestyle': '--'})
 
+
+
+def plot_3dcore2(ax, obj, t_snap, **kwargs):
+    kwargs["alpha"] = kwargs.pop("alpha", .05)
+    kwargs["color"] = kwargs.pop("color", "k")
+    kwargs["lw"] = kwargs.pop("lw", 1)  
+
+    model_obj.propagate(t_snap)
+    wf_model = model_obj.visualize_wireframe(index=0)
+    ax.plot_wireframe(*wf_model.T, **kwargs,linewidth=2.0,zorder=3)
+    
+    
 
 def make_frame2(k):
     
@@ -538,10 +572,10 @@ def make_frame2(k):
     
     
 
-    plot_3dcore(ax1, model_obj, tlist[k], color=C_A)
+    plot_3dcore2(ax1, model_obj, tlist[k], color=C_A)
     #plot_3dcore_field(ax1, model_obj, color=C_A, steps=steps1, step_size=stepsize1, lw=1.0, ls="-")
 
-    plot_traj(ax1, "PSP",  tlist[k], frame="ECLIPJ2000", color=C_A)
+    plot_traj(ax1, "PSP",  tlist[k], frame="ECLIPJ2000", color='k')
     plot_traj(ax1, "PSP", TP_B, frame="ECLIPJ2000", color="k", traj_pos=False, traj_major=None, traj_minor=144,lw=1.5)
 
     #shift center
@@ -551,10 +585,10 @@ def make_frame2(k):
     ########### top view panel
     plot_configure(ax2, view_azim=145-90, view_elev=90, view_radius=.08)
 
-    plot_3dcore(ax2, model_obj,  tlist[k], color=C_A)
+    plot_3dcore2(ax2, model_obj,  tlist[k], color=C_A)
     #plot_3dcore_field(ax2, model_obj, color=C_A, steps=steps1,step_size=stepsize1, lw=1.0, ls="-")
 
-    plot_traj(ax2, "PSP",tlist[k], frame="ECLIPJ2000", color=C_A)
+    plot_traj(ax2, "PSP",tlist[k], frame="ECLIPJ2000", color='k')
     plot_traj(ax2, "PSP", TP_B, frame="ECLIPJ2000", color="k", traj_pos=False, traj_major=None, traj_minor=144,lw=1.5)
     plot_shift(ax2,0.09,-0.11,0.08,0.0)
 
@@ -562,23 +596,22 @@ def make_frame2(k):
     ############### edge on view panel
     plot_configure(ax3, view_azim=145-90, view_elev=0, view_radius=.04)
 
-    plot_3dcore(ax3, model_obj,  tlist[k], color=C_A)
+    plot_3dcore2(ax3, model_obj,  tlist[k], color=C_A)
     #plot_3dcore_field(ax3, model_obj, color=C_A, steps=steps1, step_size=stepsize1, lw=1.0, ls="-")
 
-    plot_traj(ax3, "PSP", tlist[k], frame="ECLIPJ2000", color=C_A)
+    plot_traj(ax3, "PSP", tlist[k], frame="ECLIPJ2000", color='k')
     plot_traj(ax3, "PSP", TP_B, frame="ECLIPJ2000", color="k", traj_pos=False, traj_major=None, traj_minor=144,lw=1.5)
 
-    plot_shift(ax3,0.03,-0.05,0.0,0.0)
-    
+    plot_shift(ax3,0.03,-0.05,0.0,0.0)    
     
     
     ############################## magnetic field panel
     
         
-    ax4.plot(simtime, btot3, color=C0, label="$|B|$")
-    ax4.plot(simtime, bxyz3[:, 0], color=C1, label="$B_R$")
-    ax4.plot(simtime, bxyz3[:, 1], color=C2, label="$B_T$")
-    ax4.plot(simtime, bxyz3[:, 2], color=C3, label="$B_N$")
+    ax4.plot(simtime3, btot3, color=C0, label="$|B|$")
+    ax4.plot(simtime3, bxyz3[:, 0], color=C1, label="$B_R$")
+    ax4.plot(simtime3, bxyz3[:, 1], color=C2, label="$B_T$")
+    ax4.plot(simtime3, bxyz3[:, 2], color=C3, label="$B_N$")
 
     
     ax4.legend(loc="lower right", fontsize=12,ncol=4,edgecolor='white')
@@ -630,14 +663,13 @@ print('number of frames',len(tlist))
 #simulation time since launch
 frametime=np.round((parse_time(tlist).plot_date-parse_time(t_launch).plot_date)*24,1)
 
-simtime=np.round((parse_time(t3).plot_date-parse_time(t_launch).plot_date)*24,4)
+simtime3=np.round((parse_time(t3).plot_date-parse_time(t_launch).plot_date)*24,4)
 
 #clock computing time
 starttime1=time.time()
 
 ######## make frames
 #make_frame2(40)
-
 
 ############################## multi
 
@@ -668,12 +700,12 @@ print('movie finished in',np.round((time.time()-starttime1)/60,2),' minutes')
 
 
 
-# ## make simple animation to play with
+# ## One panel animation to play with different viewpoints
 
 # In[ ]:
 
 
-def plot_configure_anim(ax, **kwargs):
+def plot_configure3(ax, **kwargs):
     view_azim = kwargs.pop("view_azim", -25)
     view_elev = kwargs.pop("view_elev", 25)
     view_radius = kwargs.pop("view_radius", .5)
@@ -696,7 +728,7 @@ def plot_configure_anim(ax, **kwargs):
     
     #ax.set_axis_off()
     
-def make_frame(k):
+def make_frame3(k):
     
     fig = plt.figure(51,figsize=(15, 15),dpi=50)
     ax = fig.add_subplot(111, projection='3d')
@@ -705,16 +737,14 @@ def make_frame(k):
     #top view
     #plot_configure_anim(ax, view_azim=0, view_elev=90, view_radius=.15)
 
-    #top view tilted by 30 degree (about elevation of Solar Orbiter)
-    plot_configure_anim(ax, view_azim=145, view_elev=20, view_radius=.15)
-
-
+    #top view tilted by 18 degree (about elevation of Solar Orbiter 2025)
+    #plot_configure3(ax, view_azim=145, view_elev=18, view_radius=.15)
     
     #face on view
-    #plot_configure_anim(ax, view_azim=145, view_elev=00, view_radius=.08)
+    #plot_configure3(ax, view_azim=145, view_elev=00, view_radius=.08)
 
     #edge on view
-    #plot_configure_anim(ax, view_azim=145+90, view_elev=0, view_radius=.08)
+    plot_configure_anim(ax, view_azim=145+90, view_elev=0, view_radius=.08)
     
     #tilted view
     #plot_configure_anim(ax, view_azim=125, view_elev=40, view_radius=.04)
@@ -727,9 +757,12 @@ def make_frame(k):
     #dotted trajectory
     plot_traj(ax, "PSP", TP_B, frame="ECLIPJ2000", color="k", traj_pos=False, traj_major=None, traj_minor=144,lw=1.5)
     
+ 
     #write hours since launch time on top
-    plt.annotate('launch + '+str(np.round((parse_time(tlist[k]).plot_date-parse_time(t_launch).plot_date)*24,2))+' hours',[0.5,0.9],ha='center',xycoords='figure fraction',fontsize=25)
-    
+    plt.annotate('$t_0$ +',[0.45,0.95],ha='center',xycoords='figure fraction',fontsize=20)
+    plt.annotate(str(frametime[k]),[0.5,0.95],ha='center',xycoords='figure fraction',fontsize=20)
+    plt.annotate('hours',[0.56,0.95],ha='center',xycoords='figure fraction',fontsize=20)
+   
     plt.tight_layout()
     framestr = '%05i' % (k)  
     plt.savefig(animdirectory+'/3dcore_psp_'+framestr+'.jpg',dpi=100)
@@ -739,14 +772,20 @@ def make_frame(k):
 
 ################## make animation    
 
+
 #time for the animation as list
 tlist=[]
-for i in np.arange(1,2500,20):    
+for i in np.arange(1,2500,5):    
     tlist.append(t_launch+datetime.timedelta(minutes=float(i)))
 
     
 print('number of frames',len(tlist))
 #sns.set_style('whitegrid')
+
+
+frametime=np.round((parse_time(tlist).plot_date-parse_time(t_launch).plot_date)*24,1)
+
+
 
 #clock computing time
 starttime1=time.time()
@@ -755,17 +794,39 @@ starttime1=time.time()
 #make_frame(83)
 
 
+############################## multi
+
+#number of processes depends on your machines memory; check with command line "top"
+#how much memory is used by all your processes
+nr_of_processes_used=20
+print('Using multiprocessing, nr of cores',multiprocessing.cpu_count(),       'with nr of processes used: ',nr_of_processes_used)
+
+#run multiprocessing pool to make all movie frames, depending only on frame number
+pool = multiprocessing.Pool(processes=nr_of_processes_used)
+input=[i for i in range(len(tlist))]
+pool.map(make_frame3, input)
+pool.close()
+# pool.join()
 
 #make all frame
-for k in np.arange(1,len(tlist)):
-    make_frame(k)
+#for k in np.arange(1,len(tlist)):
+#    make_frame(k)
 
-os.system('ffmpeg -r 5 -i '+str(animdirectory)+'/3dcore_psp_%05d.jpg -b 5000k -r 5 '+str(outputdirectory)+'/moestl2020_3dcore_psp.mp4 -y -loglevel quiet')
+#os.system('ffmpeg -r 5 -i '+str(animdirectory)+'/3dcore_psp_%05d.jpg -b 5000k -r 5 '+str(outputdirectory)+'/moestl2020_3dcore_psp.mp4 -y -loglevel quiet')
+
+#os.system('ffmpeg -r 25 -i '+str(animdirectory)+'/3dcore_psp_%05d.jpg -b 5000k -r 25 '+str(outputdirectory)+'/moestl2020_3dcore_psp_tilt18.mp4 -y -loglevel quiet')
+
+#os.system('ffmpeg -r 25 -i '+str(animdirectory)+'/3dcore_psp_%05d.jpg -b 5000k -r 25 '+str(outputdirectory)+'/moestl2020_3dcore_psp_faceon.mp4 -y -loglevel quiet')
+
+os.system('ffmpeg -r 25 -i '+str(animdirectory)+'/3dcore_psp_%05d.jpg -b 5000k -r 25 '+str(outputdirectory)+'/moestl2020_3dcore_psp_edgeon.mp4 -y -loglevel quiet')
+
+
+
 
 print('movie finished in',np.round((time.time()-starttime1)/60,2),' minutes')
 
 
-# ### Play with model settings
+# ## Generally play with model settings
 
 # In[ ]:
 
@@ -773,7 +834,7 @@ print('movie finished in',np.round((time.time()-starttime1)/60,2),' minutes')
 ############### Model Settings
 t_launch = datetime.datetime(2022, 6, 1, 20)
 
-iparams_arr = np.array([[
+iparams_arr2 = np.array([[
     0,      # time offset
     145,    # l_1 (longitude)
     2.5,    # l_2 (latitude)
@@ -790,16 +851,12 @@ iparams_arr = np.array([[
     0       # sigma (measurement noise)
 ]], dtype=np.float32)
 
-model_obj = py3dcore.models.ThinTorusGH3DCOREModel(t_launch, runs=1, use_gpu=False)
-model_obj.update_iparams(iparams_arr, seed=42)
+model_obj2 = py3dcore.models.ThinTorusGH3DCOREModel(t_launch, runs=1, use_gpu=False)
+model_obj2.update_iparams(iparams_arr2, seed=42)
 
 
 TP_A =  t_launch + datetime.timedelta(hours=5)
-TP_B =  t_launch + datetime.timedelta(hours=24)
-
-t1, btot1, bxyz1 = measure(model_obj, "PSP", TP_A - datetime.timedelta(hours=6), TP_A  + datetime.timedelta(hours=6), frame="ECLIPJ2000", bframe="SPP_RTN")
-t2, btot2, bxyz2 = measure(model_obj, "PSP", TP_B - datetime.timedelta(hours=12), TP_B  + datetime.timedelta(hours=12), frame="ECLIPJ2000", bframe="SPP_RTN")
-tf, btotf, bxyzf = measure(model_obj, "PSP_FIXED", TP_A - datetime.timedelta(hours=6), TP_A  + datetime.timedelta(hours=6), frame="ECLIPJ2000", bframe="SPP_RTN", satparams=TP_A)
+t1, btot1, bxyz1 = measure(model_obj, "PSP", t_launch, TP_A  + datetime.timedelta(hours=6), frame="ECLIPJ2000", bframe="SPP_RTN")
 
 
 # In[ ]:
@@ -813,12 +870,12 @@ ax = fig.add_subplot(111, projection='3d')
 plot_configure(ax, view_azim=125, view_elev=40, view_radius=.15)
 #plot_configure(ax, view_azim=125, view_elev=35, view_radius=.04)
 
-plot_3dcore(ax, model_obj, TP_A, color=C_A)
-plot_3dcore_field(ax, model_obj, color=C_A, steps=300, step_size=0.0005, lw=1.5, ls=":")
+plot_3dcore(ax, model_obj2, TP_A, color=C_A)
+plot_3dcore_field(ax, model_obj2, color=C_A, steps=300, step_size=0.0005, lw=1.5, ls=":")
 plot_traj(ax, "PSP", TP_A, frame="ECLIPJ2000", color=C_A)
 
-plot_3dcore(ax, model_obj, TP_B, color=C_B)
-plot_3dcore_field(ax, model_obj, color=C_B, steps=1500, step_size=0.0005, lw=1.5, ls=":")
+plot_3dcore(ax, model_obj2, TP_B, color=C_B)
+plot_3dcore_field(ax, model_obj2, color=C_B, steps=1500, step_size=0.0005, lw=1.5, ls=":")
 plot_traj(ax, "PSP", TP_B, frame="ECLIPJ2000", color=C_B,lw=1.5)
 
 plot_traj(ax, "PSP", TP_B, frame="ECLIPJ2000", color="k", traj_pos=False, traj_major=None, traj_minor=144,lw=1.5)
@@ -876,7 +933,7 @@ plt.tight_layout()
 plt.annotate('(a)',[0.01,0.965],xycoords='figure fraction',weight='bold')
 plt.annotate('(b)',[0.01,0.475],xycoords='figure fraction',weight='bold')
 
-plt.savefig('results/plots_rate/fig6_3dcore_components_v0_250kms.png', dpi=300)
+plt.savefig('results/test_3dcore_components.png', dpi=300)
 # plt.savefig('results/plots_rate/fig6_3dcore_components.png', dpi=300)
 
 
