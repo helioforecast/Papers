@@ -4,10 +4,10 @@ This code creates results, figures, and animations for the paper Möstl et al. (
 
 There are 2 jupyter notebooks, 
 
-(1)  cme_rate.ipynb  calculates the ICME rate for solar cycle 25
+(1)  icme_rate.ipynb  calculates the ICME rate for solar cycle 25 and Parker Solar Probe and Solar Orbit trajectory plots.
 
 
-(2)  psp_3dcore.pynb simulates PSP double crossings with 3DCORE
+(2)  psp_3dcore.pynb simulates PSP double crossings with 3DCORE.
 
 
   

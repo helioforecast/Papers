@@ -44,7 +44,7 @@
 
 # Here 3DCORE is used to model synthetic observations of expanding flux ropes close to the Sun
 
-# In[1]:
+# In[3]:
 
 
 import sys
@@ -110,7 +110,7 @@ if os.path.isdir(animdirectory2) == False: os.mkdir(animdirectory2)
 #matplotlib.rcParams['text.latex.preamble'] = [r'\usepackage{amsmath}']
 
 
-# In[2]:
+# In[4]:
 
 
 ############### Model Settings
@@ -162,7 +162,7 @@ class PSP_FIXED(heliosat.PSP):
 setattr(heliosat, "PSP_FIXED", PSP_FIXED)
 
 
-# In[3]:
+# In[5]:
 
 
 def measure(obj, sat, t0, t1, frame="HEEQ", bframe="HEEQ", satparams=None):
@@ -282,7 +282,7 @@ def plot_shift(axis,extent,cx,cy,cz):
 
 # ## **Figure 5** 
 
-# In[4]:
+# In[ ]:
 
 
 sns.set_style('whitegrid')
@@ -364,7 +364,7 @@ plt.savefig('results/plots_rate/fig5_3dcore_visual.png', dpi=300,bbox_inches='ti
 
 # ### measure magnetic fields
 
-# In[5]:
+# In[ ]:
 
 
 t1, btot1, bxyz1 = measure(model_obj, "PSP",  t_launch, TP_A  + datetime.timedelta(hours=6), frame="ECLIPJ2000", bframe="SPP_RTN")
@@ -376,7 +376,7 @@ tf, btotf, bxyzf = measure(model_obj, "PSP_FIXED", t_launch, TP_A  + datetime.ti
 
 # ## **Figure 6** 
 
-# In[6]:
+# In[ ]:
 
 
 sns.set_context('talk')
@@ -437,7 +437,7 @@ ax2.set_xlim(3+22,8+22)
 #plt.xlim(datetime.datetime(2022,6,2,21,0),datetime.datetime(2022,6,3,2,0))
 
 
-ax2.set_xlabel('hours since launch time $t_0$')
+ax2.set_xlabel('hours since launch time $t_{launch}$')
 ax2.xaxis.set_major_locator(matplotlib.ticker.MultipleLocator(1))
 #ax1.xaxis.set_minor_locator(matplotlib.ticker.MultipleLocator(1))
 ax2.yaxis.set_major_locator(matplotlib.ticker.MultipleLocator(500))
@@ -735,7 +735,7 @@ def make_frame3(k):
     ax.autoscale(enable=True, axis='both', tight=None)
     
     #top view
-    #plot_configure_anim(ax, view_azim=0, view_elev=90, view_radius=.15)
+    #plot_configure3(ax, view_azim=0, view_elev=90, view_radius=.15)
 
     #top view tilted by 18 degree (about elevation of Solar Orbiter 2025)
     #plot_configure3(ax, view_azim=145, view_elev=18, view_radius=.15)
@@ -744,10 +744,10 @@ def make_frame3(k):
     #plot_configure3(ax, view_azim=145, view_elev=00, view_radius=.08)
 
     #edge on view
-    plot_configure_anim(ax, view_azim=145+90, view_elev=0, view_radius=.08)
+    #plot_configure3(ax, view_azim=145+90, view_elev=0, view_radius=.08)
     
     #tilted view
-    #plot_configure_anim(ax, view_azim=125, view_elev=40, view_radius=.04)
+    plot_configure3(ax, view_azim=125, view_elev=40, view_radius=.08)
 
     plot_3dcore(ax, model_obj, tlist[k], color=C0)
     #plot_3dcore_field(ax, model_obj, color=C_A, steps=400, step_size=0.0005, lw=1.5, ls=":")
@@ -813,36 +813,33 @@ pool.close()
 #    make_frame(k)
 
 #os.system('ffmpeg -r 5 -i '+str(animdirectory)+'/3dcore_psp_%05d.jpg -b 5000k -r 5 '+str(outputdirectory)+'/moestl2020_3dcore_psp.mp4 -y -loglevel quiet')
-
 #os.system('ffmpeg -r 25 -i '+str(animdirectory)+'/3dcore_psp_%05d.jpg -b 5000k -r 25 '+str(outputdirectory)+'/moestl2020_3dcore_psp_tilt18.mp4 -y -loglevel quiet')
-
 #os.system('ffmpeg -r 25 -i '+str(animdirectory)+'/3dcore_psp_%05d.jpg -b 5000k -r 25 '+str(outputdirectory)+'/moestl2020_3dcore_psp_faceon.mp4 -y -loglevel quiet')
-
-os.system('ffmpeg -r 25 -i '+str(animdirectory)+'/3dcore_psp_%05d.jpg -b 5000k -r 25 '+str(outputdirectory)+'/moestl2020_3dcore_psp_edgeon.mp4 -y -loglevel quiet')
-
-
+#os.system('ffmpeg -r 25 -i '+str(animdirectory)+'/3dcore_psp_%05d.jpg -b 5000k -r 25 '+str(outputdirectory)+'/moestl2020_3dcore_psp_edgeon.mp4 -y -loglevel quiet')
+#os.system('ffmpeg -r 25 -i '+str(animdirectory)+'/3dcore_psp_%05d.jpg -b 5000k -r 25 '+str(outputdirectory)+'/moestl2020_3dcore_psp_top.mp4 -y -loglevel quiet')
+os.system('ffmpeg -r 25 -i '+str(animdirectory)+'/3dcore_psp_%05d.jpg -b 5000k -r 25 '+str(outputdirectory)+'/moestl2020_3dcore_psp_tilted.mp4 -y -loglevel quiet')
 
 
 print('movie finished in',np.round((time.time()-starttime1)/60,2),' minutes')
 
 
-# ## Generally play with model settings
+# ## Play with model settings and generate synthetic magnetic fields
 
-# In[ ]:
+# In[123]:
 
 
 ############### Model Settings
-t_launch = datetime.datetime(2022, 6, 1, 20)
+t_launch = datetime.datetime(2018, 11, 11, 0)
 
 iparams_arr2 = np.array([[
     0,      # time offset
-    145,    # l_1 (longitude)
-    2.5,    # l_2 (latitude)
-    5,      # o (inclination, orientation)
+    220,    # l_1 (longitude)
+    0,    # l_2 (latitude)
+    0,      # o (inclination, orientation)
     0.24,   # d_1au (frontal width at 1AU)
     1,   # delta (cross-section aspect ratio)
     5,      # r_0 (initialization distance in solar radii)
-    250,    # v_0 (initial velocty in)
+    450,    # v_0 (initial velocty in)
     -5,      # tau (magnetic field twist)
     1,      # b_s (magnetic field scaling parameter)
     12,     # b_1au (magnetic field strength at 1au)
@@ -855,134 +852,49 @@ model_obj2 = py3dcore.models.ThinTorusGH3DCOREModel(t_launch, runs=1, use_gpu=Fa
 model_obj2.update_iparams(iparams_arr2, seed=42)
 
 
-TP_A =  t_launch + datetime.timedelta(hours=5)
-t1, btot1, bxyz1 = measure(model_obj, "PSP", t_launch, TP_A  + datetime.timedelta(hours=6), frame="ECLIPJ2000", bframe="SPP_RTN")
+TP1 =  t_launch + datetime.timedelta(hours=20)
+rt1, rbtot1, rbxyz1 = measure(model_obj2, "PSP", t_launch, TP1  + datetime.timedelta(hours=100), frame="ECLIPJ2000", bframe="SPP_RTN")
 
 
-# In[ ]:
+
+def plot_3dcore3(ax, obj, t_snap, **kwargs):
+    kwargs["alpha"] = kwargs.pop("alpha", .05)
+    kwargs["color"] = kwargs.pop("color", "k")
+    kwargs["lw"] = kwargs.pop("lw", 1)  
+
+    obj.propagate(t_snap)
+    wf_model = obj.visualize_wireframe(index=0)
+    ax.plot_wireframe(*wf_model.T, **kwargs,zorder=3,linewidth=2)
+
+
+# In[122]:
 
 
 sns.set_style('whitegrid')
 fig = plt.figure(figsize=(15, 10),dpi=80)
-
 ax = fig.add_subplot(111, projection='3d')
 
-plot_configure(ax, view_azim=125, view_elev=40, view_radius=.15)
-#plot_configure(ax, view_azim=125, view_elev=35, view_radius=.04)
+plot_configure3(ax, view_azim=125, view_elev=90, view_radius=.5)
+#plot_configure3(ax, view_azim=125, view_elev=90, view_radius=.2)
 
-plot_3dcore(ax, model_obj2, TP_A, color=C_A)
-plot_3dcore_field(ax, model_obj2, color=C_A, steps=300, step_size=0.0005, lw=1.5, ls=":")
-plot_traj(ax, "PSP", TP_A, frame="ECLIPJ2000", color=C_A)
-
-plot_3dcore(ax, model_obj2, TP_B, color=C_B)
-plot_3dcore_field(ax, model_obj2, color=C_B, steps=1500, step_size=0.0005, lw=1.5, ls=":")
-plot_traj(ax, "PSP", TP_B, frame="ECLIPJ2000", color=C_B,lw=1.5)
-
-plot_traj(ax, "PSP", TP_B, frame="ECLIPJ2000", color="k", traj_pos=False, traj_major=None, traj_minor=144,lw=1.5)
-
-plt.tight_layout()
+plot_3dcore3(ax, model_obj2, TP1, color=C_A)
+#plot_3dcore_field(ax, model_obj2, color=C_A, steps=300, step_size=0.0005, lw=1.5, ls=":")
+plot_traj(ax, "PSP", TP1, frame="ECLIPJ2000", color=C_A)
+plot_traj(ax, "PSP", TP1, frame="ECLIPJ2000", color="k", traj_pos=False, traj_major=None, traj_minor=300,lw=1.5)
 
 
-#########################################
+fig = plt.figure(figsize=(15, 10),dpi=80)
+ax = fig.add_subplot(111)
 
-sns.set_context('talk')
-sns.set_style('whitegrid')
+simtime_rt1=np.round((parse_time(rt1).plot_date-parse_time(t_launch).plot_date)*24,4)        
 
-fig = plt.figure(figsize=(13, 12),dpi=80)
+ax.plot(simtime_rt1, rbtot1, color=C0, label="$|B|$")
+ax.plot(simtime_rt1, rbxyz1[:, 0], color=C1, label="$B_R$")
+ax.plot(simtime_rt1, rbxyz1[:, 1], color=C2, label="$B_T$")
+ax.plot(simtime_rt1, rbxyz1[:, 2], color=C3, label="$B_N$")
+ax.set_xlim(0,100)
 
-ax1 = fig.add_subplot(211)
-ax1.set_title("1st encounter (apex)")
-
-ax1.plot(t1, btot1, color=C0, label="$|B|$")
-ax1.plot(t1, bxyz1[:, 0], color=C1, label="$B_R$")
-ax1.plot(t1, bxyz1[:, 1], color=C2, label="$B_T$")
-ax1.plot(t1, bxyz1[:, 2], color=C3, label="$B_N$")
-
-ax1.plot(tf, btotf, color=C0, linestyle='--')
-ax1.plot(tf, bxyzf[:, 0], color=C1, linestyle='--')
-ax1.plot(tf, bxyzf[:, 1], color=C2, linestyle='--')
-ax1.plot(tf, bxyzf[:, 2], color=C3, linestyle='--')
-
-ax1.legend(loc="lower right", fontsize=16,ncol=4)
-ax1.xaxis.set_major_formatter(matplotlib.dates.DateFormatter('%b %d %H:%M'))
-ax1.set_ylabel('B [nT]')
-plt.ylim(-1300,1300)
-#plt.xlim(datetime.datetime(2022,6,1,22,0),datetime.datetime(2022,6,2,10,0))
-
-
-
-ax2 = fig.add_subplot(212)
-ax2.set_title("2nd encounter (leg)")
-
-ax2.plot(t2, btot2, color=C0, label="$|B|$")
-ax2.plot(t2, bxyz2[:, 0], color=C1, label="$B_R$")
-ax2.plot(t2, bxyz2[:, 1], color=C2, label="$B_T$")
-ax2.plot(t2, bxyz2[:, 2], color=C3, label="$B_N$")
-
-ax2.legend(loc="lower right", fontsize=16,ncol=4)
-ax2.xaxis.set_major_formatter(matplotlib.dates.DateFormatter('%b %d %H:%M'))
-ax2.set_xlabel('simulation time')
-ax2.set_ylabel('B [nT]')
-plt.ylim(-1300,1300)
-#plt.xlim(datetime.datetime(2022,6,2,17,0),datetime.datetime(2022,6,3,5,0))
-
-
-plt.tight_layout()
-
-
-plt.annotate('(a)',[0.01,0.965],xycoords='figure fraction',weight='bold')
-plt.annotate('(b)',[0.01,0.475],xycoords='figure fraction',weight='bold')
-
-plt.savefig('results/test_3dcore_components.png', dpi=300)
-# plt.savefig('results/plots_rate/fig6_3dcore_components.png', dpi=300)
-
-
-# In[ ]:
-
-
-
-
-
-# In[ ]:
-
-
-
-
-
-# In[ ]:
-
-
-
-
-
-# In[ ]:
-
-
-
-
-
-# In[ ]:
-
-
-
-
-
-# In[ ]:
-
-
-
-
-
-# In[ ]:
-
-
-
-
-
-# In[ ]:
-
-
-
+    
 
 
 # In[ ]:
