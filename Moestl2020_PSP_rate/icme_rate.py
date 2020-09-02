@@ -3,17 +3,18 @@
 
 # # ICME rate for solar cycle 25 and PSP flux rope double crossings
 # 
-# ### jupyter notebook 1 of 2 
+# ### jupyter notebook 1 of 2 for the paper Möstl et al. (2020, ApJ)
+# 
 # 
 # cme_rate.ipynb, cme_rate.py
 # https://github.com/helioforecast/Papers/tree/master/Moestl2020_PSP_rate
-# analyses ICMECAT data for CME rate paper Möstl et al. 2020, ApJ
+# makes a prediction of the ICME rate in solar cycle 25
 # 
-# Author: C. Moestl, IWF Graz, Austria; twitter @chrisoutofspace; https://github.com/cmoestl
+# Main author: C. Moestl, IWF Graz, Austria; twitter @chrisoutofspace; https://github.com/cmoestl
 # 
-# For installation of a conda environment to run this code and how to download the data into a directory specified in config.py, see instructions in README.md of the heliocats github repo. Conda dependencies are listed under environment.yml, and pip in requirements.txt. Plots are saved in results/plots_rate/ as png and pdf.
+# For installation of a conda environment to run this code and how to download the data into a directory specified in config.py, see instructions in README.md of the github repo. Conda dependencies are listed under environment.yml, and pip in requirements.txt. Plots are saved in results/plots_rate/ as png and pdf.
 # 
-# 
+# ---
 # **Data sources**
 # 
 # McIntosh et al. 2020
@@ -972,7 +973,7 @@ print(np.round(np.mean(rc_rate24/ic_rate24),2))
 # ## **Figure 2** correlation SSN with ICME rate and fit
 # plot SSN vs ICME rate, linear fit with confidence interval
 
-# In[19]:
+# In[27]:
 
 
 #add spots23/24 and rc_rate23/24 into 1 array for correlation
@@ -1069,8 +1070,8 @@ plt.ylabel("ICME rate per year (Richardson & Cane)")
 xlinfit=np.arange(0,350)
 #1 sigma interval by using mean difference as +/- to linear fit
 
-ylinfit_1=(linfit.slope)*xlinfit+linfit.intercept+mean_stddev
-ylinfit_2=(linfit.slope)*xlinfit+linfit.intercept-mean_stddev
+ylinfit_1=(linfit.slope+linfit.stderr)*xlinfit+linfit.intercept+mean_stddev
+ylinfit_2=(linfit.slope-linfit.stderr)*xlinfit+linfit.intercept-mean_stddev
 
 
 plt.fill_between(xlinfit,ylinfit_1,ylinfit_2,alpha=0.2,color='coral',label='fit confidence 1$\mathrm{\sigma}$')
@@ -1093,7 +1094,7 @@ plt.savefig('results/plots_rate/fig2_rate_ssn', dpi=300)
 # ## predictions for solar cycle 25: SSN and ICME rate
 # ### 1. Mean cycle model
 
-# In[20]:
+# In[12]:
 
 
 # from heliocats import stats as hs
@@ -1212,7 +1213,7 @@ print('Std in ICME rate from fit and ICMECAT range for each year:')
 print(ic_rate_25_m_std)
 
 
-# In[21]:
+# In[13]:
 
 
 ########################################################### 2. SC25 panel prediction (SC25PP)
@@ -1331,7 +1332,7 @@ print('final Std in ICME rate from SSN prediction, SSN to ICME fit and ICMECAT r
 print(ic_rate_25_pp_std)
 
 
-# In[22]:
+# In[14]:
 
 
 ################################### SC25MC
@@ -1429,7 +1430,7 @@ print(ic_rate_25_mc20_std)
 
 # ## **Figure 3** ICME rate predictions
 
-# In[23]:
+# In[15]:
 
 
 sns.set_context("talk")     
@@ -1525,7 +1526,7 @@ plt.savefig('results/plots_rate/fig3_sc25_predictions.pdf', dpi=300)
 plt.savefig('results/plots_rate/fig3_sc25_predictions.png', dpi=300)
 
 
-# In[24]:
+# In[16]:
 
 
 #Extra plot for solar cycle comparison
@@ -1594,7 +1595,7 @@ plt.savefig('results/cycle25_prediction_short.png',dpi=100)
 
 # ### make PSP and Solar Orbiter position
 
-# In[25]:
+# In[17]:
 
 
 frame='HEEQ'
@@ -1684,7 +1685,7 @@ sns.distplot(bepi_r)
 plt.xlabel('AU')
 
 
-# In[26]:
+# In[18]:
 
 
 #get the speed in hourly resolution
@@ -1714,7 +1715,7 @@ plt.xlabel('AU')
 print('psp maximum speed ',np.max(psp_highres_speed),' km/s at ',psp_highres_r[np.argmax(psp_highres_speed)], ' AU')
 
 
-# In[27]:
+# In[19]:
 
 
 #%matplotlib inline
@@ -1783,7 +1784,7 @@ plt.figtext(0.99,0.008,'C. Möstl @chrisoutofspace', fontsize=10, ha='right',col
 plt.savefig('results/psp_orbits.png', dpi=100)
 
 
-# In[28]:
+# In[20]:
 
 
 #same thing for Solar Orbiter
@@ -1887,7 +1888,7 @@ plt.savefig('results/solo_orbits.png', dpi=100)
 
 # first calculate smooth functions for the icme rate including the derived error bars in Figure 3
 
-# In[29]:
+# In[21]:
 
 
 #fit yearly ICME rates again with hathaway function to get to daily resolution including errors
@@ -1947,7 +1948,7 @@ plt.plot(times_25_daily_icrange_num,fmc_low(times_25_daily_icrange_num))
 
 # Figure out how many ICMEs PSP sees < 0.1 AU, < 0.2 AU, < 0.3 AU for the predicted ICME rates
 
-# In[30]:
+# In[22]:
 
 
 #make position new in order to be of similar range with ICME rate spline fits
@@ -2078,7 +2079,7 @@ print('days < 0.3 AU:',solo_l03.size)
 
 # ## **Figure 4** PSP Solar Orbiter distance and ICME rate
 
-# In[32]:
+# In[23]:
 
 
 sns.set_context("talk")     

@@ -13,11 +13,11 @@
 # 
 # Authors: C. Möstl, Andreas J. Weiss, IWF Graz, Austria; twitter @chrisoutofspace; https://github.com/cmoestl
 # 
-# For installation of a conda environment to run this code and how to download the data into a directory specified in config.py, see instructions in README.md of the heliocats github repo. Conda dependencies are listed under environment.yml, and pip in requirements.txt. Plots are saved in results/plots_rate/ as png and pdf.
+# For installation of a conda environment to run this code and how to download the data into a directory specified in config.py, see instructions in README.md of the github repo. Conda dependencies are listed under environment.yml, and pip in requirements.txt. Plots are saved in results/plots_rate/ as png and pdf.
 # 
 # 
 # 
-# 
+# ---
 # 
 # **MIT LICENSE**
 # 
@@ -44,7 +44,7 @@
 
 # Here 3DCORE is used to model synthetic observations of expanding flux ropes close to the Sun
 
-# In[3]:
+# In[ ]:
 
 
 import sys
@@ -106,11 +106,14 @@ if os.path.isdir(animdirectory) == False: os.mkdir(animdirectory)
 animdirectory2='results/plots_rate/anim2'
 if os.path.isdir(animdirectory2) == False: os.mkdir(animdirectory2)
     
+animdirectory3='results/plots_rate/anim3'
+if os.path.isdir(animdirectory3) == False: os.mkdir(animdirectory3)
+    
 #rc('text', usetex=True)
 #matplotlib.rcParams['text.latex.preamble'] = [r'\usepackage{amsmath}']
 
 
-# In[4]:
+# In[3]:
 
 
 ############### Model Settings
@@ -162,7 +165,7 @@ class PSP_FIXED(heliosat.PSP):
 setattr(heliosat, "PSP_FIXED", PSP_FIXED)
 
 
-# In[5]:
+# In[18]:
 
 
 def measure(obj, sat, t0, t1, frame="HEEQ", bframe="HEEQ", satparams=None):
@@ -226,7 +229,7 @@ def plot_configure(ax, **kwargs):
     ax.set_axis_off()
 
 def plot_3dcore(ax, obj, t_snap, **kwargs):
-    kwargs["alpha"] = kwargs.pop("alpha", .05)
+    kwargs["alpha"] = kwargs.pop("alpha", .12)
     kwargs["color"] = kwargs.pop("color", "k")
     kwargs["lw"] = kwargs.pop("lw", 1)  
 
@@ -282,7 +285,7 @@ def plot_shift(axis,extent,cx,cy,cz):
 
 # ## **Figure 5** 
 
-# In[ ]:
+# In[19]:
 
 
 sns.set_style('whitegrid')
@@ -364,7 +367,7 @@ plt.savefig('results/plots_rate/fig5_3dcore_visual.png', dpi=300,bbox_inches='ti
 
 # ### measure magnetic fields
 
-# In[ ]:
+# In[20]:
 
 
 t1, btot1, bxyz1 = measure(model_obj, "PSP",  t_launch, TP_A  + datetime.timedelta(hours=6), frame="ECLIPJ2000", bframe="SPP_RTN")
@@ -376,7 +379,7 @@ tf, btotf, bxyzf = measure(model_obj, "PSP_FIXED", t_launch, TP_A  + datetime.ti
 
 # ## **Figure 6** 
 
-# In[ ]:
+# In[21]:
 
 
 sns.set_context('talk')
@@ -455,7 +458,7 @@ plt.savefig('results/plots_rate/fig6_3dcore_components.png', dpi=300)
 
 # ### visualize PSP trajectory through the flux rope
 
-# In[7]:
+# In[22]:
 
 
 def plot_reconstruction(ax, obj, qs, **kwargs):
@@ -515,8 +518,187 @@ plt.tight_layout()
 
 
 # ## **Figure 5** animation for paper
+# 
+# best done on a server with multiprocessing - set nr_of_processes_used to low values (2,4) when runnning locally on a laptop or desktop
+# 
 
-# In[ ]:
+# In[26]:
+
+
+#number of processes depends on your machines memory; check with command line "top"
+#how much memory is used by all your processes
+
+nr_of_processes_used=100
+
+print('Using multiprocessing, nr of cores',multiprocessing.cpu_count(),       'with nr of processes used: ',nr_of_processes_used)
+
+
+sns.set_style('whitegrid')
+sns.set_style("ticks",{'grid.linestyle': '--'})
+
+
+def plot_3dcore2(ax, obj, t_snap, **kwargs):
+    kwargs["alpha"] = kwargs.pop("alpha", .10)
+    kwargs["color"] = kwargs.pop("color", "k")
+    kwargs["lw"] = kwargs.pop("lw", 1)  
+
+    model_obj.propagate(t_snap)
+    wf_model = model_obj.visualize_wireframe(index=0)
+    ax.plot_wireframe(*wf_model.T, **kwargs,linewidth=2.0,zorder=3)
+    
+
+def make_frame2(k):
+    
+    fig = plt.figure(52,figsize=(19.2, 10.8),dpi=100)
+    
+    #define subplot grid
+    ax1 = plt.subplot2grid((3, 3), (0, 0),rowspan=3,colspan=2,projection='3d')  
+    ax2 = plt.subplot2grid((3, 3), (0, 2),projection='3d')  
+    ax3 = plt.subplot2grid((3, 3), (1, 2),projection='3d')  
+    #ax4 = plt.subplot2grid((3, 3), (2, 0))  
+
+    #manually set axes positions
+    #https://matplotlib.org/api/_as_gen/matplotlib.axes.Axes.set_position.html#matplotlib.axes.Axes.set_position
+    ax1.set_position([0,0,0.6,1], which='both')
+    ax2.set_position([0.65,0.35,0.35,0.65], which='both')
+    ax3.set_position([0.6,0,0.4,0.4], which='both')
+    #ax4.set_position([0.1,0.1,0.5,0.25], which='both')
+
+    
+    steps1=400+k*60
+    stepsize1=0.0005
+
+    ######### tilted view
+    plot_configure(ax1, view_azim=125, view_elev=40, view_radius=.08)
+
+    #solar equatorial plane
+    #for p in np.arange(-1,1,0.05):
+    #    ax1.plot([-1,1],[p,p],[0,0],lw=0.5,color='black', alpha=0.4,linestyle='--',zorder=0 )
+    #    ax1.plot([p,p],[-1,1],[0,0],lw=0.5,color='black', alpha=0.4,linestyle='--',zorder=0 )
+    
+
+    plot_3dcore2(ax1, model_obj, tlist[k], color=C_A)
+    #plot_3dcore_field(ax1, model_obj, color=C_A, steps=steps1, step_size=stepsize1, lw=1.0, ls="-")
+
+    plot_traj(ax1, "PSP",  tlist[k], frame="ECLIPJ2000", color='k')
+    plot_traj(ax1, "PSP", TP_B, frame="ECLIPJ2000", color="k", traj_pos=False, traj_major=None, traj_minor=144,lw=1.5)
+
+    #shift center
+    plot_shift(ax1,0.11,-0.05,0.0,-0.1)
+
+    ########### top view panel
+    plot_configure(ax2, view_azim=145-90, view_elev=90, view_radius=.08)
+
+    plot_3dcore2(ax2, model_obj,  tlist[k], color=C_A)
+    #plot_3dcore_field(ax2, model_obj, color=C_A, steps=steps1,step_size=stepsize1, lw=1.0, ls="-")
+
+    plot_traj(ax2, "PSP",tlist[k], frame="ECLIPJ2000", color='k')
+    plot_traj(ax2, "PSP", TP_B, frame="ECLIPJ2000", color="k", traj_pos=False, traj_major=None, traj_minor=144,lw=1.5)
+    plot_shift(ax2,0.09,-0.11,0.08,0.0)
+
+
+    ############### edge on view panel
+    plot_configure(ax3, view_azim=145-90, view_elev=0, view_radius=.04)
+
+    plot_3dcore2(ax3, model_obj,  tlist[k], color=C_A)
+    #plot_3dcore_field(ax3, model_obj, color=C_A, steps=steps1, step_size=stepsize1, lw=1.0, ls="-")
+
+    plot_traj(ax3, "PSP", tlist[k], frame="ECLIPJ2000", color='k')
+    plot_traj(ax3, "PSP", TP_B, frame="ECLIPJ2000", color="k", traj_pos=False, traj_major=None, traj_minor=144,lw=1.5)
+
+    plot_shift(ax3,0.03,-0.05,0.0,0.0)    
+    
+    
+    ############################## magnetic field panel
+    #ax4.plot(simtime3, btot3, color=C0, label="$|B|$")
+    #ax4.plot(simtime3, bxyz3[:, 0], color=C1, label="$B_R$")
+    #ax4.plot(simtime3, bxyz3[:, 1], color=C2, label="$B_T$")
+    #ax4.plot(simtime3, bxyz3[:, 2], color=C3, label="$B_N$")
+
+    
+    #ax4.legend(loc="lower right", fontsize=12,ncol=4,edgecolor='white')
+    #ax4.xaxis.set_major_formatter(matplotlib.dates.DateFormatter('%b %d %H:%M'))
+    #ax4.set_ylabel('B [nT]')
+    #ax4.set_ylim(-1300,1300)
+    #ax4.set_xlim(datetime.datetime(2022,6,1,23,0),datetime.datetime(2022,6,3,4,0))
+
+    #line at current time
+    #ax4.plot([frametime[k],frametime[k]], [-2000,2000], color='black',linewidth=1,alpha=0.8)
+    #ax4.set_xlabel('hours since launch time')
+    #ax4.xaxis.set_major_locator(matplotlib.ticker.MultipleLocator(5))
+    #ax4.xaxis.set_minor_locator(matplotlib.ticker.MultipleLocator(1))
+    #ax4.yaxis.set_major_locator(matplotlib.ticker.MultipleLocator(500))
+    #ax4.set_xlim(0,30)
+    #ax4.grid(True)
+    
+
+    #write hours since launch time 
+    plt.annotate('$t_{launch}$ +',[0.45,0.15],ha='center',xycoords='figure fraction',fontsize=20)
+    plt.annotate(str(frametime[k]),[0.5,0.15],ha='center',xycoords='figure fraction',fontsize=20)
+    plt.annotate('hours',[0.54,0.15],ha='center',xycoords='figure fraction',fontsize=20)
+   
+
+    #panel labels
+    #plt.annotate('(a)',[0.02,0.93],xycoords='figure fraction',fontsize=20)
+    #plt.annotate('(b)',[0.59,0.93],xycoords='figure fraction',fontsize=20)
+    #plt.annotate('(c)',[0.59,0.40],xycoords='figure fraction',fontsize=20)
+
+    framestr = '%05i' % (k)  
+    plt.savefig(animdirectory2+'/3dcore_psp_'+framestr+'.jpg',dpi=100)
+    print('frame:', k)
+    plt.close(52)
+
+
+
+################## make animation    
+
+#time for the animation as list
+tlist=[]
+for i in np.arange(1,2200,5):    
+    tlist.append(t_launch+datetime.timedelta(minutes=float(i)))
+    
+print('number of frames',len(tlist))
+#sns.set_style('whitegrid')
+
+
+#simulation time since launch
+frametime=np.round((parse_time(tlist).plot_date-parse_time(t_launch).plot_date)*24,1)
+
+simtime3=np.round((parse_time(t3).plot_date-parse_time(t_launch).plot_date)*24,4)
+
+#clock computing time
+starttime1=time.time()
+
+######## make frames
+#make_frame2(40)
+
+
+############################## multi
+
+#run multiprocessing pool to make all movie frames, depending only on frame number
+pool = multiprocessing.Pool(processes=nr_of_processes_used)
+input=[i for i in range(len(tlist))]
+pool.map(make_frame2, input)
+pool.close()
+# pool.join()
+
+
+################################## single
+
+#make all frames
+#for k in np.arange(1,len(tlist)):
+#    make_frame2(k)
+    
+#######################################    
+
+os.system('ffmpeg -r 25 -i '+animdirectory2+'/3dcore_psp_%05d.jpg -b 5000k -r 25 '+outputdirectory+'/moestl2020_3dcore_psp_figure_5.mp4 -y -loglevel quiet')
+
+print('movie finished in',np.round((time.time()-starttime1)/60,2),' minutes')
+
+
+# ## **Figure 5** animation for paper with in situ panel (available on figshare)
+
+# In[27]:
 
 
 sns.set_style('whitegrid')
@@ -525,7 +707,7 @@ sns.set_style("ticks",{'grid.linestyle': '--'})
 
 
 def plot_3dcore2(ax, obj, t_snap, **kwargs):
-    kwargs["alpha"] = kwargs.pop("alpha", .05)
+    kwargs["alpha"] = kwargs.pop("alpha", .10)
     kwargs["color"] = kwargs.pop("color", "k")
     kwargs["lw"] = kwargs.pop("lw", 1)  
 
@@ -622,7 +804,7 @@ def make_frame2(k):
 
     #line at current time
     ax4.plot([frametime[k],frametime[k]], [-2000,2000], color='black',linewidth=1,alpha=0.8)
-    ax4.set_xlabel('hours since launch time $t_0$')
+    ax4.set_xlabel('hours since launch time')
     ax4.xaxis.set_major_locator(matplotlib.ticker.MultipleLocator(5))
     ax4.xaxis.set_minor_locator(matplotlib.ticker.MultipleLocator(1))
     ax4.yaxis.set_major_locator(matplotlib.ticker.MultipleLocator(500))
@@ -631,8 +813,8 @@ def make_frame2(k):
     
 
 
-    #write hours since launch time on top
-    plt.annotate('$t_0$ +',[0.46,0.45],ha='center',xycoords='figure fraction',fontsize=20)
+    #write hours since launch time 
+    plt.annotate('$t_{launch}$ +',[0.45,0.45],ha='center',xycoords='figure fraction',fontsize=20)
     plt.annotate(str(frametime[k]),[0.5,0.45],ha='center',xycoords='figure fraction',fontsize=20)
     plt.annotate('hours',[0.54,0.45],ha='center',xycoords='figure fraction',fontsize=20)
    
@@ -643,7 +825,7 @@ def make_frame2(k):
     #plt.annotate('(c)',[0.59,0.40],xycoords='figure fraction',fontsize=20)
 
     framestr = '%05i' % (k)  
-    plt.savefig(animdirectory2+'/3dcore_psp_'+framestr+'.jpg',dpi=100)
+    plt.savefig(animdirectory3+'/3dcore_psp_'+framestr+'.jpg',dpi=100)
     print('frame:', k)
     plt.close(52)
 
@@ -671,6 +853,7 @@ starttime1=time.time()
 ######## make frames
 #make_frame2(40)
 
+
 ############################## multi
 
 #number of processes depends on your machines memory; check with command line "top"
@@ -694,9 +877,10 @@ pool.close()
     
 #######################################    
 
-os.system('ffmpeg -r 25 -i '+animdirectory2+'/3dcore_psp_%05d.jpg -b 5000k -r 25 '+outputdirectory+'/moestl2020_3dcore_psp_paper.mp4 -y -loglevel quiet')
+os.system('ffmpeg -r 25 -i '+animdirectory3+'/3dcore_psp_%05d.jpg -b 5000k -r 25 '+outputdirectory+'/moestl2020_3dcore_psp_figure_5_insitu.mp4 -y -loglevel quiet')
 
 print('movie finished in',np.round((time.time()-starttime1)/60,2),' minutes')
+
 
 
 
@@ -825,7 +1009,7 @@ print('movie finished in',np.round((time.time()-starttime1)/60,2),' minutes')
 
 # ## Play with model settings and generate synthetic magnetic fields
 
-# In[123]:
+# In[ ]:
 
 
 ############### Model Settings
@@ -867,7 +1051,7 @@ def plot_3dcore3(ax, obj, t_snap, **kwargs):
     ax.plot_wireframe(*wf_model.T, **kwargs,zorder=3,linewidth=2)
 
 
-# In[122]:
+# In[ ]:
 
 
 sns.set_style('whitegrid')
