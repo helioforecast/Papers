@@ -4,7 +4,7 @@
 # # ICME rate for solar cycle 25 and PSP flux rope double crossings
 # 
 # 
-# ### jupyter notebook 2 of 2 
+# ### jupyter notebook 2 of 2 for the paper Möstl et al. (2020, ApJ)
 # 
 # psp_3dcore.ipynb, psp_3dcore.py
 # https://github.com/helioforecast/Papers/tree/master/Moestl2020_PSP_rate
@@ -44,7 +44,7 @@
 
 # Here 3DCORE is used to model synthetic observations of expanding flux ropes close to the Sun
 
-# In[ ]:
+# In[1]:
 
 
 import sys
@@ -113,7 +113,7 @@ if os.path.isdir(animdirectory3) == False: os.mkdir(animdirectory3)
 #matplotlib.rcParams['text.latex.preamble'] = [r'\usepackage{amsmath}']
 
 
-# In[3]:
+# In[2]:
 
 
 ############### Model Settings
@@ -165,7 +165,7 @@ class PSP_FIXED(heliosat.PSP):
 setattr(heliosat, "PSP_FIXED", PSP_FIXED)
 
 
-# In[18]:
+# In[3]:
 
 
 def measure(obj, sat, t0, t1, frame="HEEQ", bframe="HEEQ", satparams=None):
@@ -285,7 +285,7 @@ def plot_shift(axis,extent,cx,cy,cz):
 
 # ## **Figure 5** 
 
-# In[19]:
+# In[4]:
 
 
 sns.set_style('whitegrid')
@@ -367,7 +367,7 @@ plt.savefig('results/plots_rate/fig5_3dcore_visual.png', dpi=300,bbox_inches='ti
 
 # ### measure magnetic fields
 
-# In[20]:
+# In[5]:
 
 
 t1, btot1, bxyz1 = measure(model_obj, "PSP",  t_launch, TP_A  + datetime.timedelta(hours=6), frame="ECLIPJ2000", bframe="SPP_RTN")
@@ -379,7 +379,7 @@ tf, btotf, bxyzf = measure(model_obj, "PSP_FIXED", t_launch, TP_A  + datetime.ti
 
 # ## **Figure 6** 
 
-# In[21]:
+# In[6]:
 
 
 sns.set_context('talk')
@@ -458,7 +458,7 @@ plt.savefig('results/plots_rate/fig6_3dcore_components.png', dpi=300)
 
 # ### visualize PSP trajectory through the flux rope
 
-# In[22]:
+# In[7]:
 
 
 def plot_reconstruction(ax, obj, qs, **kwargs):
@@ -696,15 +696,72 @@ os.system('ffmpeg -r 25 -i '+animdirectory2+'/3dcore_psp_%05d.jpg -b 5000k -r 25
 print('movie finished in',np.round((time.time()-starttime1)/60,2),' minutes')
 
 
-# ## **Figure 5** animation for paper with in situ panel (available on figshare)
+# ## **Figure 5** animation for paper with in situ panel and 3d field lines (available on figshare)
 
-# In[27]:
+# In[14]:
 
 
 sns.set_style('whitegrid')
 sns.set_style("ticks",{'grid.linestyle': '--'})
 
+#number of processes depends on your machines memory; check with command line "top"
+#how much memory is used by all your processesii
+nr_of_processes_used=30
 
+def visualize_fieldline_dpsi(obj, q0, dpsi=np.pi, index=0, step_size=0.01):
+        """Integrates along the magnetic field lines starting at a point q0 in (q) coordinates and
+        returns the field lines in (s) coordinates.
+        Parameters
+        ----------
+        q0 : np.ndarray
+            Starting point in (q) coordinates.
+        dpsi: float
+            Delta psi to integrate by, default np.pi
+        index : int, optional
+            Model run index, by default 0.
+        step_size : float, optional
+            Integration step size, by default 0.01.
+        Returns
+        -------
+        np.ndarray
+            Integrated magnetic field lines in (s) coordinates.
+        """
+        # only implemented in cpu mode
+        _tva = np.empty((3,), dtype=obj.dtype)
+        _tvb = np.empty((3,), dtype=obj.dtype)
+        obj.g(q0, _tva, obj.iparams_arr[index], obj.sparams_arr[index], obj.qs_xs[index])
+        fl = [np.array(_tva, dtype=obj.dtype)]
+        def iterate(s):
+            obj.f(s, _tva, obj.iparams_arr[index], obj.sparams_arr[index], obj.qs_sx[index])
+            obj.h(_tva, _tvb, obj.iparams_arr[index], obj.sparams_arr[index], obj.qs_xs[index], bounded=False)
+            return _tvb / np.linalg.norm(_tvb)
+        psi_pos = q0[1]
+        dpsi_count = 0
+        while dpsi_count < dpsi:
+            # use implicit method and least squares for calculating the next step
+            sol = getattr(scipy.optimize.least_squares(
+                lambda x: x - fl[-1] - step_size *
+                iterate((x.astype(obj.dtype) + fl[-1]) / 2),
+                fl[-1]), "x")
+            fl.append(np.array(sol.astype(obj.dtype)))
+            obj.f(fl[-1], _tva, obj.iparams_arr[index], obj.sparams_arr[index],
+                   obj.qs_sx[index])
+            dpsi_count += np.abs(psi_pos - _tva[1])
+            psi_pos = _tva[1]
+        fl = np.array(fl, dtype=obj.dtype)
+        return fl
+
+
+
+   
+def plot_3dcore_field(ax, obj, step_size=0.005, q0=[1, .1, np.pi/2],**kwargs):
+
+    #initial point is q0
+    q0i =np.array(q0, dtype=np.float32).astype(np.float32)    
+    fl = visualize_fieldline_dpsi(model_obj,q0i, dpsi=2*np.pi-0.01, step_size=step_size)
+    ax.plot(*fl.T, **kwargs)
+    
+    
 
 def plot_3dcore2(ax, obj, t_snap, **kwargs):
     kwargs["alpha"] = kwargs.pop("alpha", .10)
@@ -740,8 +797,10 @@ def make_frame2(k):
 
 
     
-    steps1=400+k*60
-    stepsize1=0.0005
+
+    #for field line plots stepsize and initial point for drawing    
+    field_stepsize=0.001    
+    q1=np.array([1, .1, np.pi/2])
 
     ######### tilted view
     plot_configure(ax1, view_azim=125, view_elev=40, view_radius=.08)
@@ -755,7 +814,7 @@ def make_frame2(k):
     
 
     plot_3dcore2(ax1, model_obj, tlist[k], color=C_A)
-    #plot_3dcore_field(ax1, model_obj, color=C_A, steps=steps1, step_size=stepsize1, lw=1.0, ls="-")
+    plot_3dcore_field(ax1, model_obj, color=C_A, step_size=field_stepsize, lw=1.1, ls="-",q0=q1)
 
     plot_traj(ax1, "PSP",  tlist[k], frame="ECLIPJ2000", color='k')
     plot_traj(ax1, "PSP", TP_B, frame="ECLIPJ2000", color="k", traj_pos=False, traj_major=None, traj_minor=144,lw=1.5)
@@ -768,7 +827,7 @@ def make_frame2(k):
     plot_configure(ax2, view_azim=145-90, view_elev=90, view_radius=.08)
 
     plot_3dcore2(ax2, model_obj,  tlist[k], color=C_A)
-    #plot_3dcore_field(ax2, model_obj, color=C_A, steps=steps1,step_size=stepsize1, lw=1.0, ls="-")
+    plot_3dcore_field(ax2, model_obj, color=C_A, step_size=field_stepsize, lw=1.1, ls="-",q0=q1)
 
     plot_traj(ax2, "PSP",tlist[k], frame="ECLIPJ2000", color='k')
     plot_traj(ax2, "PSP", TP_B, frame="ECLIPJ2000", color="k", traj_pos=False, traj_major=None, traj_minor=144,lw=1.5)
@@ -779,7 +838,7 @@ def make_frame2(k):
     plot_configure(ax3, view_azim=145-90, view_elev=0, view_radius=.04)
 
     plot_3dcore2(ax3, model_obj,  tlist[k], color=C_A)
-    #plot_3dcore_field(ax3, model_obj, color=C_A, steps=steps1, step_size=stepsize1, lw=1.0, ls="-")
+    plot_3dcore_field(ax3, model_obj, color=C_A, step_size=field_stepsize, lw=1.1, ls="-",q0=q1)
 
     plot_traj(ax3, "PSP", tlist[k], frame="ECLIPJ2000", color='k')
     plot_traj(ax3, "PSP", TP_B, frame="ECLIPJ2000", color="k", traj_pos=False, traj_major=None, traj_minor=144,lw=1.5)
@@ -851,15 +910,13 @@ simtime3=np.round((parse_time(t3).plot_date-parse_time(t_launch).plot_date)*24,4
 starttime1=time.time()
 
 ######## make frames
-#make_frame2(40)
+make_frame2(40)
 
-
+'''
 ############################## multi
 
-#number of processes depends on your machines memory; check with command line "top"
-#how much memory is used by all your processesii
-nr_of_processes_used=100
-print('Using multiprocessing, nr of cores',multiprocessing.cpu_count(),       'with nr of processes used: ',nr_of_processes_used)
+print('Using multiprocessing, nr of cores',multiprocessing.cpu_count(), \
+      'with nr of processes used: ',nr_of_processes_used)
 
 #run multiprocessing pool to make all movie frames, depending only on frame number
 pool = multiprocessing.Pool(processes=nr_of_processes_used)
@@ -877,10 +934,10 @@ pool.close()
     
 #######################################    
 
-os.system('ffmpeg -r 25 -i '+animdirectory3+'/3dcore_psp_%05d.jpg -b 5000k -r 25 '+outputdirectory+'/moestl2020_3dcore_psp_figure_5_insitu.mp4 -y -loglevel quiet')
+os.system('ffmpeg -r 25 -i '+animdirectory3+'/3dcore_psp_%05d.jpg -b 5000k -r 25 '+outputdirectory+'/moestl2020_3dcore_psp_figure_5_insitu_field.mp4 -y -loglevel quiet')
 
 print('movie finished in',np.round((time.time()-starttime1)/60,2),' minutes')
-
+'''
 
 
 
@@ -1009,7 +1066,7 @@ print('movie finished in',np.round((time.time()-starttime1)/60,2),' minutes')
 
 # ## Play with model settings and generate synthetic magnetic fields
 
-# In[ ]:
+# In[5]:
 
 
 ############### Model Settings
@@ -1051,14 +1108,14 @@ def plot_3dcore3(ax, obj, t_snap, **kwargs):
     ax.plot_wireframe(*wf_model.T, **kwargs,zorder=3,linewidth=2)
 
 
-# In[ ]:
+# In[7]:
 
 
 sns.set_style('whitegrid')
 fig = plt.figure(figsize=(15, 10),dpi=80)
 ax = fig.add_subplot(111, projection='3d')
 
-plot_configure3(ax, view_azim=125, view_elev=90, view_radius=.5)
+plot_configure(ax, view_azim=125, view_elev=90, view_radius=.5)
 #plot_configure3(ax, view_azim=125, view_elev=90, view_radius=.2)
 
 plot_3dcore3(ax, model_obj2, TP1, color=C_A)
