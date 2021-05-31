@@ -1,14 +1,13 @@
 # MFRpred
 
-This python package is used for space weather research.  We try to predict the magnetic field of the magnetic flux rope (MFR) within an interplanetary coronal mass ejection (ICME) at Earth (L1) with (1) machine learning algorithms, 
-and (2) an analogue ensemble method. 
+This python package is used for space weather research.  We try to predict the magnetic field of the magnetic flux rope (MFR) within an interplanetary coronal mass ejection (ICME) at Earth (L1) with machine learning algorithms.
 
-by U.V. Amerstorfer, Martin Reiss and [C. Möstl](https://www.iwf.oeaw.ac.at/en/user-site/christian-moestl/), IWF Graz, Austria.
+by Martin Reiss, U.V. Amerstorfer, R. L. Bailey, and [C. Möstl](https://www.iwf.oeaw.ac.at/en/user-site/christian-moestl/), IWF Graz, Austria.
 
-Current status (August 2020): **Work in progress!** 
+Current status (June 2021): **Work in progress!** 
 
 If you want to use parts of this code for generating results for peer-reviewed scientific publications, 
-please contact us per email (ute.amerstorfer@oeaw.ac.at, christian.moestl@oeaw.ac.at) or via https://twitter.com/chrisoutofspace .
+please contact us per email (christian.moestl@oeaw.ac.at) or via https://twitter.com/chrisoutofspace .
 
   
 For installation instructions, see below.  
@@ -18,8 +17,7 @@ For installation instructions, see below.
     conda activate mfrpred
     jupyter lab
     
-Run the mfrpred.ipynb notebook in jupyter lab.    
-
+Run the mfrpred_mreiss_bz.ipynb and mfrpred_mreiss_btot notebooks in jupyter lab.    
 
 
 ---
