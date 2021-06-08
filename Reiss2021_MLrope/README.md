@@ -53,13 +53,13 @@ Create a conda environment:
 
 Before running the scripts, you need to download three data files (in total 1.8 GB) from this figshare repository, 
 
-    https://doi.org/10.6084/m9.figshare.12058065.v7
+    https://doi.org/10.6084/m9.figshare.12058065.v8
 
 and place them in the data/ folder.
 
-    data/stereoa_2007_2019_sceq_ndarray.p
+    data/stereoa_2007_2021_sceq_ndarray.p
     data/stereob_2007_2014_sceq_ndarray.p
-    data/wind_2007_2019_heeq_ndarray.p
+    data/wind_2007_2021_heeq_ndarray.p
         
 
 
