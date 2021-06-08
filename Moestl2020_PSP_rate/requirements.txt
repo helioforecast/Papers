@@ -1,4 +1,4 @@
-pillow==8.1.1 
+pillow==8.2.0 
 cdflib==0.3.17
 heliosat==0.4.0
 heliocats==1.1.1
