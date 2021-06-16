@@ -1,0 +1,17 @@
+name: detect
+dependencies:
+  - python==3.9.5
+  - cudatoolkit  
+  - pip
+  - jupyterlab
+  - numpy
+  - matplotlib
+  - pandas
+  - scipy
+  - seaborn
+  - tensorflow
+  - scikit-image
+  - scikit-learn
+
+
+
