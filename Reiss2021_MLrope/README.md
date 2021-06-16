@@ -39,9 +39,10 @@ on MacOS:
 
 go to a directory of your choice
 
-	  git clone https://github.com/uvamerstorfer/MFRpred
+	  git clone https://github.com/helioforecast/Papers
+      cd Reiss2021_MLrope
 
-Create a conda environment:
+Create a conda environment for the mfrpred_... notebooks:
 
 	  conda env create -f environment.yml
 
@@ -49,6 +50,17 @@ Create a conda environment:
 
 	  pip install -r requirements.txt
 	  
+
+Create a conda environment for the detection_... notebooks:
+
+	  conda env create -f environment_detect.yml
+
+	  conda activate detect
+
+	  pip install -r requirements_detect.txt
+	  
+
+
 
 
 Before running the scripts, you need to download three data files (in total 1.8 GB) from this figshare repository, 
