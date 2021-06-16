@@ -2,7 +2,7 @@
 
 This python package is used for space weather research.  We try to predict the magnetic field of the magnetic flux rope (MFR) within an interplanetary coronal mass ejection (ICME) at Earth (L1) with machine learning algorithms.
 
-by Martin Reiss, U.V. Amerstorfer, R. L. Bailey, and [C. Möstl](https://www.iwf.oeaw.ac.at/en/user-site/christian-moestl/), IWF Graz, Austria.
+by Martin Reiss, U.V. Amerstorfer, Hannah Rüdisser, R. L. Bailey, and [C. Möstl](https://www.iwf.oeaw.ac.at/en/user-site/christian-moestl/), IWF Graz, Austria.
 
 Current status (June 2021): **Work in progress!** 
 
