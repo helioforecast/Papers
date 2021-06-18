@@ -50,6 +50,8 @@ from sklearn.ensemble import RandomForestRegressor, GradientBoostingRegressor
 import warnings
 warnings.filterwarnings('ignore')
 
+os.system('jupyter nbconvert --to script mfrpred_mreiss_btot.ipynb')   
+
 
 # ## 1. Data preparation
 
@@ -154,23 +156,9 @@ n_all=np.hstack([n_iwinind,n_istaind,n_istbind])
 print('percentage of all events',np.round((n_iwinind.shape[0] + n_istaind.shape[0] + n_istbind.shape[0])/ (np.size(stbi)+np.size(wini)+np.size(stai)) *100 ) )
 
 
-# In[6]:
-
-
-print('for the selected events with sheath')
-print()
-print("Average ICME length   : {:.2f} hours".format(((mo_end_time_num[n_all] - icme_start_time_num[n_all])*24.).mean()))
-print("Average MO length    : {:.2f} hours".format(((mo_end_time_num[n_all] - mo_start_time_num[n_all])*24.).mean()))
-print("Average SHEATH length: {:.2f} hours".format(((mo_start_time_num[n_all] - icme_start_time_num[n_all])*24.).mean()))
-print()
-print("STD ICME length   : {:.2f} hours".format(((mo_end_time_num[n_all] - icme_start_time_num[n_all])*24.).std()))
-print("STD MO length    : {:.2f} hours".format(((mo_end_time_num[n_all] - mo_start_time_num[n_all])*24.).std()))
-print("STD SHEATH length: {:.2f} hours".format(((mo_start_time_num[n_all] - icme_start_time_num[n_all])*24.).std()))
-
-
 # #### Timing windows for features and labels
 
-# In[7]:
+# In[6]:
 
 
 # Set time window for features in hours
@@ -196,11 +184,11 @@ label_end = mo_end_time_num
 
 # #### Functions to compute features and labels
 
-# In[8]:
+# In[7]:
 
 
 # Compute mean, max and std-dev in feature time window
-def get_feature(sc_time, start_time, end_time, sc_ind, sc_feature):
+def get_feature(name, sc_time, start_time, end_time, sc_ind, sc_feature):
     feature_mean = np.zeros(np.size(sc_ind))
     feature_max = np.zeros(np.size(sc_ind))
     feature_std = np.zeros(np.size(sc_ind))
@@ -218,6 +206,12 @@ def get_feature(sc_time, start_time, end_time, sc_ind, sc_feature):
         feature_cv[p] = feature_std[p]/np.abs(feature_mean[p])
         
         feature_temp = feature_slice[np.isfinite(feature_slice)]
+        
+        #save indices of selected events
+        if name=='win': win_select_ind.append(sc_ind[p])              
+        if name=='sta': sta_select_ind.append(sc_ind[p])
+        if name=='stb': stb_select_ind.append(sc_ind[p])
+        
         try:
             feature_max[p] = np.max(feature_temp)
             feature_min[p] = np.min(feature_temp)
@@ -231,44 +225,55 @@ def get_feature(sc_time, start_time, end_time, sc_ind, sc_feature):
 def get_label(sc_time, start_time, end_time, sc_ind, sc_label, label_type="max"):
     label_mean = np.zeros(np.size(sc_ind))
     label_max = np.zeros(np.size(sc_ind))
+    label_min = np.zeros(np.size(sc_ind))
 
     for p in np.arange(0, np.size(sc_ind)):
         time_slice = np.where(np.logical_and(sc_time > start_time[sc_ind[p]], sc_time < end_time[sc_ind[p]]))
         label_slice = sc_label[time_slice]
         if len(label_slice) == 0:
             label_max[p] = np.nan
+            label_min[p] = np.nan
             label_mean[p] = np.nan
         else:
             label_max[p] = np.nanmax(label_slice)
+            label_min[p] = np.min([np.nanmin(label_slice), 0])
             label_mean[p] = np.nanmean(label_slice)
             
     if label_type == 'max':
         return label_max
+    elif label_type == 'min':
+        return label_min
     elif label_type == 'mean':
         return label_mean
 
 
 # #### Create data frame for features and labels
 
-# In[9]:
+# In[8]:
 
 
-import time
+#contains all events that are finally selected
+win_select_ind=[]
+sta_select_ind=[]
+stb_select_ind=[]
+
+
 # Compute either 'max' or 'mean' of total magnetic field in label time window
 target_type = 'max'
 
 # List of physical properties
 variable_list = ['bx', 'by', 'bz', 'bt', 'vt','np','tp']
 
+
 # If file doesn't exist, create it, otherwise load it
-if not os.path.exists("mfr_predict/btot_fh{:.0f}_sta_features.p".format(feature_hours)):
+if not os.path.exists("mfr_predict/bz_fh{:.0f}_sta_features.p".format(feature_hours)):
     start_time = time.time()
     print("Option 1: Compute features...")
 
     # Wind features
     dwin = {}
     for variable in variable_list:
-        all_var_features = get_feature(win['time'], event_start, event_end, n_iwinind, win[variable])
+        all_var_features = get_feature('win',win['time'], event_start, event_end, n_iwinind, win[variable])
         dwin['mean('+variable+')'] = all_var_features[0]
         dwin['max('+variable+')'] = all_var_features[1]
         dwin['std('+variable+')'] = all_var_features[2]
@@ -277,17 +282,22 @@ if not os.path.exists("mfr_predict/btot_fh{:.0f}_sta_features.p".format(feature_
         dwin['minmax('+variable+')'] = all_var_features[5]
 
     # Wind labels
-    label_btotmean = get_label(win['time'], label_start, label_end, n_iwinind, win['bt'], label_type=target_type)
+    label_btotmean = get_label(win['time'], label_start, label_end, n_iwinind, win['bz'], label_type=target_type)
     dwin['Target'] = label_btotmean
     
     # Create dataframe
     dfwin = pd.DataFrame(data=dwin)
     pickle.dump(dfwin, open(os.path.join(mfrdir, 'btot_fh{:.0f}_'.format(feature_hours) + savepath_win), "wb"))
     
-    # STEREO-A features
+    #dump original indices
+    win_select_size=int(len(win_select_ind)/len(variable_list))
+    win_select_ind=win_select_ind[0:win_select_size]
+    pickle.dump(win_select_ind, open(os.path.join(mfrdir, 'btot_orig_ind_' + savepath_win), "wb"))
+    
+    ################### STEREO-A features
     dsta = {}
     for variable in variable_list:
-        all_var_features = get_feature(sta['time'], event_start, event_end, 
+        all_var_features = get_feature('sta',sta['time'], event_start, event_end, 
                                        n_istaind, sta[variable])
         dsta['mean('+variable+')'] = all_var_features[0]
         dsta['max('+variable+')'] = all_var_features[1]
@@ -297,17 +307,24 @@ if not os.path.exists("mfr_predict/btot_fh{:.0f}_sta_features.p".format(feature_
         dsta['minmax('+variable+')'] = all_var_features[5]
 
     # STEREO-A labels
-    label_btotmean = get_label(sta['time'], label_start, label_end, n_istaind, sta['bt'], label_type=target_type)
+    label_btotmean = get_label(sta['time'], label_start, label_end, n_istaind, sta['bz'], label_type=target_type)
     dsta['Target'] = label_btotmean
     
     # Create dateframe
     dfsta = pd.DataFrame(data=dsta)
     pickle.dump(dfsta, open(os.path.join(mfrdir, 'btot_fh{:.0f}_'.format(feature_hours) + savepath_sta), "wb"))
     
-    # STEREO-B features
+    #dump original indices
+    sta_select_size=int(len(sta_select_ind)/len(variable_list))
+    sta_select_ind=sta_select_ind[0:sta_select_size]
+    pickle.dump(sta_select_ind, open(os.path.join(mfrdir, 'btot_orig_ind_' + savepath_sta), "wb"))
+
+
+    
+    #################### STEREO-B features
     dstb = {}
     for variable in variable_list:
-        all_var_features = get_feature(stb['time'], event_start, event_end, 
+        all_var_features = get_feature('stb',stb['time'], event_start, event_end, 
                                        n_istbind, stb[variable])
         dstb['mean('+variable+')'] = all_var_features[0]
         dstb['max('+variable+')'] = all_var_features[1]
@@ -317,12 +334,20 @@ if not os.path.exists("mfr_predict/btot_fh{:.0f}_sta_features.p".format(feature_
         dstb['minmax('+variable+')'] = all_var_features[5]
 
     # STEREO-B labels
-    label_btotmean = get_label(stb['time'], label_start, label_end, n_istbind, stb['bt'], label_type=target_type)
+    label_btotmean = get_label(stb['time'], label_start, label_end, n_istbind, stb['bz'], label_type=target_type)
     dstb['Target'] = label_btotmean
     
     # Create dataframe
     dfstb = pd.DataFrame(data=dstb)
     pickle.dump(dfstb, open(os.path.join(mfrdir, 'btot_fh{:.0f}_'.format(feature_hours) + savepath_stb), "wb"))
+
+    #dump original indices
+    stb_select_size=int(len(stb_select_ind)/len(variable_list))
+    stb_select_ind=stb_select_ind[0:stb_select_size]
+    pickle.dump(stb_select_ind, open(os.path.join(mfrdir, 'btot_orig_ind_' + savepath_stb), "wb"))
+
+   
+    
     print("Option 1: Computation of data frame for Wind, STEREO-A, and STEREO-B completed")   
     end_time = time.time()
     print("Computation of features took {:.1f} minutes.".format((end_time - start_time)/60.))
@@ -336,7 +361,30 @@ else:
 
 # #### Clean the data frame by removing NaNs 
 
+# In[9]:
+
+
+#get original indices of the 362 events
+
+win_select_ind = pickle.load(open(os.path.join(mfrdir, 'btot_orig_ind_' + savepath_win), "rb"))
+sta_select_ind= pickle.load(open(os.path.join(mfrdir, 'btot_orig_ind_' + savepath_sta), "rb"))
+stb_select_ind = pickle.load(open(os.path.join(mfrdir, 'btot_orig_ind_' + savepath_stb), "rb"))
+
+
+win_select_ind=np.array(win_select_ind)
+sta_select_ind=np.array(sta_select_ind)
+stb_select_ind=np.array(stb_select_ind)
+
+print(len(dfwin)+len(dfsta)+len(dfstb))
+print(len(win_select_ind)+len(sta_select_ind)+len(stb_select_ind))
+
+
 # In[10]:
+
+
+print(len(dfwin))
+print(len(dfsta))
+print(len(dfstb))
 
 
 # Events before tidying up
@@ -344,30 +392,79 @@ len_dfwin_nans = len(dfwin)
 len_dfsta_nans = len(dfsta)
 len_dfstb_nans = len(dfstb)
 
+print("Total number of events  ", len(dfwin)+len(dfsta)+len(dfstb))
+print()
+
 # Remove NaN's in data frames
-dfwin = dfwin.dropna()
-dfsta = dfsta.dropna()
-dfstb = dfstb.dropna()
+dfwin1 = dfwin.dropna()
+dfsta1 = dfsta.dropna()
+dfstb1 = dfstb.dropna()
 
-print("{} nans removed from WIND data".format(len_dfwin_nans-len(dfwin)))
-print("{} nans removed from STEREO-A data".format(len_dfsta_nans-len(dfsta)))
-print("{} nans removed from STEREO-B data".format(len_dfstb_nans-len(dfstb)))
-print("Total number of events left:  ", len(dfwin)+len(dfsta)+len(dfstb))
+#get indices of nans
+win_nan=np.array(dfwin[dfwin.isna().any(axis=1)].index)
+sta_nan=np.array(dfsta[dfsta.isna().any(axis=1)].index)
+stb_nan=np.array(dfstb[dfstb.isna().any(axis=1)].index)
 
+win_select_ind1=np.delete(win_select_ind,win_nan)
+sta_select_ind1=np.delete(sta_select_ind,sta_nan)
+stb_select_ind1=np.delete(stb_select_ind,stb_nan)
 
-# In[ ]:
-
-
-
-
-
-# In[ ]:
-
+print(len(dfwin1), len(win_select_ind1))
+print(len(dfsta1),len(sta_select_ind1))
+print(len(dfstb1),len(stb_select_ind1))
 
 
+print("{} nans removed from WIND data".format(len_dfwin_nans-len(dfwin1)))
+print("{} nans removed from STEREO-A data".format(len_dfsta_nans-len(dfsta1)))
+print("{} nans removed from STEREO-B data".format(len_dfstb_nans-len(dfstb1)))
+print("Total number of events left:  ", len(dfwin1)+len(dfsta1)+len(dfstb1))
+
+#n_all are now the indices of all 348 selected events in the ICMECAT
+n_all=np.hstack([win_select_ind1,sta_select_ind1,stb_select_ind1])
+print(len(n_all))
 
 
 # In[11]:
+
+
+##reduce dataframes finally to selected events
+dfwin=dfwin1
+dfsta=dfsta1
+dfstb=dfstb1
+
+
+# In[12]:
+
+
+print('Statistics for the final '+str(len(n_all))+' selected events with sheath:')
+print()
+print("Average ICME length   : {:.2f} hours".format(((mo_end_time_num[n_all] - icme_start_time_num[n_all])*24.).mean()))
+print("Average MO length     : {:.2f} hours".format(((mo_end_time_num[n_all] - mo_start_time_num[n_all])*24.).mean()))
+print("Average SHEATH length : {:.2f} hours".format(((mo_start_time_num[n_all] - icme_start_time_num[n_all])*24.).mean()))
+print()
+print("STD ICME length       : {:.2f} hours".format(((mo_end_time_num[n_all] - icme_start_time_num[n_all])*24.).std()))
+print("STD MO length         : {:.2f} hours".format(((mo_end_time_num[n_all] - mo_start_time_num[n_all])*24.).std()))
+print("STD SHEATH length     : {:.2f} hours".format(((mo_start_time_num[n_all] - icme_start_time_num[n_all])*24.).std()))
+
+print()
+print("Average MO Bt max   : {:.2f} nT".format((ic.loc[n_all,'mo_bmax'].mean())))
+print("std MO Bt max   : {:.2f} nT".format((ic.loc[n_all,'mo_bmax'].std())))
+print()
+
+print("Average MO Bt   : {:.2f} nT".format((ic.loc[n_all,'mo_bmean'].mean())))
+print("std MO Bt   : {:.2f} nT".format((ic.loc[n_all,'mo_bmean'].std())))
+print()
+print("Average MO Bz   : {:.2f} nT".format((ic.loc[n_all,'mo_bzmean'].mean())))
+print("std MO Bz   : {:.2f} nT".format((ic.loc[n_all,'mo_bzmean'].std())))
+print()
+print("Average MO Bzmin   : {:.2f} nT".format((ic.loc[n_all,'mo_bzmin'].mean())))
+print("std MO Bzmin   : {:.2f} nT".format((ic.loc[n_all,'mo_bzmin'].std())))
+
+#print("Average SHEATH length : {:.2f} hours".format(((mo_start_time_num[n_all] - icme_start_time_num[n_all])*24.).mean()))
+print()
+
+
+# In[13]:
 
 
 """#Some tests...
@@ -398,7 +495,7 @@ print(np.nanmin(prop_event)/np.nanmax(prop_event))
 
 # #### Split data frame into training and testing
 
-# In[12]:
+# In[14]:
 
 
 # Testing data size in percent
@@ -432,7 +529,7 @@ test_ind = test.index.to_numpy()
 
 # #### Feature selection
 
-# In[13]:
+# In[15]:
 
 
 # Select features
@@ -463,7 +560,7 @@ pickle.dump([n_iwinind, n_istaind, n_istbind,
 
 # #### Select algorithms for machine learning
 
-# In[14]:
+# In[16]:
 
 
 # Define machine learning models
@@ -496,7 +593,7 @@ def evaluate_forecast(model, X, y, y_predict):
 
 # #### Test different machine learning algorithms
 
-# In[15]:
+# In[19]:
 
 
 # Use pickle to load training and testing data
@@ -528,7 +625,7 @@ for name, model in models.items():
 
 # #### Validation of machine learning models
 
-# In[16]:
+# In[20]:
 
 
 # Validate machine learning model on test data
@@ -542,7 +639,7 @@ for name, model in models.items():
 
 # #### Optimising model hyperparameters
 
-# In[17]:
+# In[21]:
 
 
 # Set to True when you want to redo the Hyperparameter tuning - takes a few minutes
@@ -552,7 +649,7 @@ gridsearch = False
 from sklearn.model_selection import RandomizedSearchCV
 
 
-# In[18]:
+# In[22]:
 
 
 '''
@@ -585,7 +682,7 @@ print("{:<10}{:6.2f}{:6.2f}".format('test', cc1, mae1))
 '''
 
 
-# In[19]:
+# In[23]:
 
 
 '''
@@ -619,7 +716,7 @@ print("{:<10}{:6.2f}{:6.2f}".format('test', cc1, mae1))
 '''
 
 
-# In[20]:
+# In[24]:
 
 
 # Select best models according to scores
@@ -632,8 +729,11 @@ y_pred2 = model2.predict(X_test)
 y_pred3 = model3.predict(X_test)
 
 
-# In[21]:
+# In[25]:
 
+
+sns.set_context("talk")     
+sns.set_style('whitegrid')
 
 importances = model3.feature_importances_
 indices = np.argsort(importances)
@@ -657,7 +757,7 @@ plt.savefig('plots/' + argv3, bbox_inches='tight')
 plt.show()
 
 
-# In[22]:
+# In[26]:
 
 
 # (n, 1) -- (n,)
@@ -669,7 +769,7 @@ y_pred3 = np.squeeze(y_pred3)
 #y_pred1 = y_pred1.reshape(-1,1)
 
 
-# In[23]:
+# In[27]:
 
 
 # Create scatter density plots for different models
@@ -692,7 +792,6 @@ ax1.text(30, 1, 'LR', fontsize=18)
 ax1.set_xlabel('max($B_{\mathrm{tot}}$) observed [nT]', fontsize=14)
 ax1.set_ylabel('max($B_{\mathrm{tot}}$) predicted [nT]', fontsize=14)
 ax1.plot([-100, 100],[-100, 100], ls=":")
-
 x = y_test
 y = y_pred2
 xy = np.vstack([x,y])
@@ -743,7 +842,7 @@ plt.show()
 
 # #### Point-to-point comparison metrics
 
-# In[24]:
+# In[28]:
 
 
 import sklearn
@@ -833,7 +932,7 @@ print('Std. Obs.  = {:.2f}'.format(np.std(obs)))
 
 # #### Binary metrics
 
-# In[25]:
+# In[29]:
 
 
 # 2. Binary Metrics 
@@ -923,7 +1022,7 @@ print('TSS  = {:.2f}'.format(tss,))
 print('Bias = {:.2f}'.format(bs,))
 
 
-# In[26]:
+# In[30]:
 
 
 """# Compute ROC curve
@@ -960,7 +1059,7 @@ plt.show()"""
 
 # ## 3. Real-world Applications
 
-# In[27]:
+# In[31]:
 
 
 from matplotlib.dates import DateFormatter
@@ -1014,7 +1113,7 @@ def plot_all_mos(sat, n_ind, start_range, end_range, satname, varstr='max'):
     plt.show()
 
 
-# In[28]:
+# In[32]:
 
 
 #Example in Figure 1:
@@ -1022,7 +1121,7 @@ y_pred = y_pred3
 plot_all_mos(win, n_iwinind, 17, 18, 'Wind')
 
 
-# In[29]:
+# In[33]:
 
 
 y_pred = y_pred3
@@ -1032,6 +1131,12 @@ plot_all_mos(win, n_iwinind, start_range, end_range, 'Wind')
 #plot_all_mos(sta, n_istaind, start_range, end_range, 'STEREO-A')
 #start_range, end_range = len(win_test_ind) + len(sta_test_ind), len(test_ind)
 #plot_all_mos(stb, n_istbind, start_range, end_range, 'STEREO-B')
+
+
+# In[ ]:
+
+
+
 
 
 # In[ ]:

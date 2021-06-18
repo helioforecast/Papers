@@ -12,7 +12,7 @@
 # Copy Version 8 from https://figshare.com/articles/dataset/Solar_wind_in_situ_data_suitable_for_machine_learning_python_numpy_arrays_STEREO-A_B_Wind_Parker_Solar_Probe_Ulysses_Venus_Express_MESSENGER/12058065
 # into folder /data.
 
-# In[34]:
+# In[1]:
 
 
 # Python Modules and Packages
@@ -63,7 +63,7 @@ print(sns.__version__)#0.9.0
 import PIL
 print(PIL.__version__)#8.1.2
 
-os.system('jupyter nbconvert --to script mfr_pred_mreiss_bz.ipynb')    
+os.system('jupyter nbconvert --to script mfrpred_mreiss_bz.ipynb')    
 
 
 # ## 1. Data preparation
@@ -166,42 +166,12 @@ print("Number of Events with a sheath region  :", n_iwinind.shape[0] + n_istaind
 print('Percentage of all events',np.round((n_iwinind.shape[0] + n_istaind.shape[0] + n_istbind.shape[0])/ (np.size(stbi)+np.size(wini)+np.size(stai))*100))
 
 # Indices of all selected events
-n_all=np.hstack([n_iwinind,n_istaind,n_istbind])
-
-
-# In[6]:
-
-
-print('Statistics for the selected events with sheath:')
-print()
-print("Average ICME length   : {:.2f} hours".format(((mo_end_time_num[n_all] - icme_start_time_num[n_all])*24.).mean()))
-print("Average MO length     : {:.2f} hours".format(((mo_end_time_num[n_all] - mo_start_time_num[n_all])*24.).mean()))
-print("Average SHEATH length : {:.2f} hours".format(((mo_start_time_num[n_all] - icme_start_time_num[n_all])*24.).mean()))
-print()
-print("STD ICME length       : {:.2f} hours".format(((mo_end_time_num[n_all] - icme_start_time_num[n_all])*24.).std()))
-print("STD MO length         : {:.2f} hours".format(((mo_end_time_num[n_all] - mo_start_time_num[n_all])*24.).std()))
-print("STD SHEATH length     : {:.2f} hours".format(((mo_start_time_num[n_all] - icme_start_time_num[n_all])*24.).std()))
-
-print()
-print("Average MO Bt max   : {:.2f} nT".format((ic.loc[n_all,'mo_bmax'].mean())))
-print("std MO Bt max   : {:.2f} nT".format((ic.loc[n_all,'mo_bmax'].std())))
-print()
-
-
-
-
-print("Average MO Bt   : {:.2f} nT".format((ic.loc[n_all,'mo_bmean'].mean())))
-print("std MO Bt   : {:.2f} nT".format((ic.loc[n_all,'mo_bmean'].std())))
-print()
-print("Average MO Bz   : {:.2f} nT".format((ic.loc[n_all,'mo_bzmean'].mean())))
-print("std MO Bz   : {:.2f} nT".format((ic.loc[n_all,'mo_bzmean'].std())))
-#print("Average SHEATH length : {:.2f} hours".format(((mo_start_time_num[n_all] - icme_start_time_num[n_all])*24.).mean()))
-print()
+#n_all1=np.hstack([n_iwinind,n_istaind,n_istbind])
 
 
 # #### Timing windows for features and labels
 
-# In[7]:
+# In[6]:
 
 
 # Set time window for features in hours
@@ -227,7 +197,7 @@ label_end = mo_end_time_num
 
 # #### Functions to compute features and labels
 
-# In[8]:
+# In[7]:
 
 
 # Compute mean, max and std-dev in feature time window
@@ -292,7 +262,7 @@ def get_label(sc_time, start_time, end_time, sc_ind, sc_label, label_type="max")
 
 # #### Create data frame for features and labels
 
-# In[9]:
+# In[8]:
 
 
 #contains all events that are finally selected
@@ -335,7 +305,7 @@ if not os.path.exists("mfr_predict/bz_fh{:.0f}_sta_features.p".format(feature_ho
     #dump original indices
     win_select_size=int(len(win_select_ind)/len(variable_list))
     win_select_ind=win_select_ind[0:win_select_size]
-    pickle.dump(win_select_ind, open(os.path.join(mfrdir, 'orig_ind_' + savepath_win), "wb"))
+    pickle.dump(win_select_ind, open(os.path.join(mfrdir, 'bz_orig_ind_' + savepath_win), "wb"))
     
     ################### STEREO-A features
     dsta = {}
@@ -360,7 +330,7 @@ if not os.path.exists("mfr_predict/bz_fh{:.0f}_sta_features.p".format(feature_ho
     #dump original indices
     sta_select_size=int(len(sta_select_ind)/len(variable_list))
     sta_select_ind=sta_select_ind[0:sta_select_size]
-    pickle.dump(sta_select_ind, open(os.path.join(mfrdir, 'orig_ind_' + savepath_sta), "wb"))
+    pickle.dump(sta_select_ind, open(os.path.join(mfrdir, 'bz_orig_ind_' + savepath_sta), "wb"))
 
 
     
@@ -387,7 +357,7 @@ if not os.path.exists("mfr_predict/bz_fh{:.0f}_sta_features.p".format(feature_ho
     #dump original indices
     stb_select_size=int(len(stb_select_ind)/len(variable_list))
     stb_select_ind=stb_select_ind[0:stb_select_size]
-    pickle.dump(stb_select_ind, open(os.path.join(mfrdir, 'orig_ind_' + savepath_stb), "wb"))
+    pickle.dump(stb_select_ind, open(os.path.join(mfrdir, 'bz_orig_ind_' + savepath_stb), "wb"))
 
    
     
@@ -404,14 +374,14 @@ else:
 
 # #### Clean the data frame by removing NaNs 
 
-# In[10]:
+# In[9]:
 
 
 #get original indices of the 362 events
 
-win_select_ind = pickle.load(open(os.path.join(mfrdir, 'orig_ind_' + savepath_win), "rb"))
-sta_select_ind= pickle.load(open(os.path.join(mfrdir, 'orig_ind_' + savepath_sta), "rb"))
-stb_select_ind = pickle.load(open(os.path.join(mfrdir, 'orig_ind_' + savepath_stb), "rb"))
+win_select_ind = pickle.load(open(os.path.join(mfrdir, 'bz_orig_ind_' + savepath_win), "rb"))
+sta_select_ind= pickle.load(open(os.path.join(mfrdir, 'bz_orig_ind_' + savepath_sta), "rb"))
+stb_select_ind = pickle.load(open(os.path.join(mfrdir, 'bz_orig_ind_' + savepath_stb), "rb"))
 
 
 win_select_ind=np.array(win_select_ind)
@@ -422,7 +392,7 @@ print(len(dfwin)+len(dfsta)+len(dfstb))
 print(len(win_select_ind)+len(sta_select_ind)+len(stb_select_ind))
 
 
-# In[11]:
+# In[10]:
 
 
 print(len(dfwin))
@@ -457,14 +427,17 @@ print(len(dfsta1),len(sta_select_ind1))
 print(len(dfstb1),len(stb_select_ind1))
 
 
-
 print("{} nans removed from WIND data".format(len_dfwin_nans-len(dfwin1)))
 print("{} nans removed from STEREO-A data".format(len_dfsta_nans-len(dfsta1)))
 print("{} nans removed from STEREO-B data".format(len_dfstb_nans-len(dfstb1)))
 print("Total number of events left:  ", len(dfwin1)+len(dfsta1)+len(dfstb1))
 
+#n_all are now the indices of all 348 selected events in the ICMECAT
+n_all=np.hstack([win_select_ind1,sta_select_ind1,stb_select_ind1])
+print(len(n_all))
 
-# In[12]:
+
+# In[11]:
 
 
 ##reduce dataframes finally to selected events
@@ -473,10 +446,9 @@ dfsta=dfsta1
 dfstb=dfstb1
 
 
-
 # ## Figure 1: ICME catalog 
 
-# In[13]:
+# In[12]:
 
 
 #markersize
@@ -497,26 +469,27 @@ plt.xlabel('Date [years]')
 plt.ylim([0.94,1.1])
 plt.legend(loc=1,fontsize=13)
 
+
 ax2 = plt.subplot(122) 
 #ax2.scatter(ic.loc[wini,'mo_sc_heliodistance'],ic.loc[wini,'mo_bmean'], label='Wind', s=ms,c='mediumseagreen', alpha=al)
 #ax2.scatter(ic.loc[stai,'mo_sc_heliodistance'],ic.loc[stai,'mo_bmean'], label='STEREO-A',s=ms,c='red', alpha=al)
 #ax2.scatter(ic.loc[stbi,'mo_sc_heliodistance'],ic.loc[stbi,'mo_bmean'], label='STEREO-B',s=ms,c='blue', alpha=al)
-ax2.scatter(ic.loc[win_select_ind1,'mo_sc_heliodistance'],ic.loc[win_select_ind1,'mo_bmax'], label='max($B_t$) in Wind', s=ms,c='mediumseagreen', alpha=al)
-ax2.scatter(ic.loc[sta_select_ind1,'mo_sc_heliodistance'],ic.loc[sta_select_ind1,'mo_bmax'], label='max($B_t$) in STEREO-A',s=ms,c='tomato', alpha=al)
-ax2.scatter(ic.loc[stb_select_ind1,'mo_sc_heliodistance'],ic.loc[stb_select_ind1,'mo_bmax'], label='max($B_t$) in STEREO-B',s=ms,c='mediumslateblue', alpha=al)
+ax2.scatter(ic.loc[win_select_ind1,'icme_start_time'],ic.loc[win_select_ind1,'mo_bmax'], label='max($B_t$) in Wind', s=ms,c='mediumseagreen', alpha=al)
+ax2.scatter(ic.loc[sta_select_ind1,'icme_start_time'],ic.loc[sta_select_ind1,'mo_bmax'], label='max($B_t$) in STEREO-A',s=ms,c='tomato', alpha=al)
+ax2.scatter(ic.loc[stb_select_ind1,'icme_start_time'],ic.loc[stb_select_ind1,'mo_bmax'], label='max($B_t$) in STEREO-B',s=ms,c='mediumslateblue', alpha=al)
+ax2 = plt.subplot(122) 
 
 al=1.0
-ax2.plot(ic.loc[win_select_ind1,'mo_sc_heliodistance'],ic.loc[win_select_ind1,'mo_bzmin'], linestyle='None',marker='o',ms=5,c='mediumseagreen',markerfacecolor='white',label='min($B_{\mathrm{z}}$) in Wind', alpha=al)
-ax2.plot(ic.loc[sta_select_ind1,'mo_sc_heliodistance'],ic.loc[sta_select_ind1,'mo_bzmin'], linestyle='None',marker='o',ms=5,label='min($B_{\mathrm{z}}$) in STEREO-A',markerfacecolor='white',c='tomato', alpha=al)
-ax2.plot(ic.loc[stb_select_ind1,'mo_sc_heliodistance'],ic.loc[stb_select_ind1,'mo_bzmin'], linestyle='None',marker='o',ms=5,label='min($B_{\mathrm{z}}$) in STEREO-B',markerfacecolor='white',c='mediumslateblue', alpha=al)
-ax2.set_xlabel('Heliocentric Distance [AU]')
-ax2.set_ylabel('Magnetic Field Strength in Magnetic Obstacle [nT]')
-ax2.set_xlim([0.94,1.1])
-ax2.legend(loc=1,fontsize=13)
+ax2.scatter(ic.loc[win_select_ind1,'icme_start_time'],ic.loc[win_select_ind1,'mo_bzmin'], linestyle='None',marker='o',s=ms,edgecolors='mediumseagreen',facecolors='white',label='min($B_{\mathrm{z}}$) in Wind', alpha=al)
+ax2.scatter(ic.loc[sta_select_ind1,'icme_start_time'],ic.loc[sta_select_ind1,'mo_bzmin'], linestyle='None',marker='o',s=ms,label='min($B_{\mathrm{z}}$) in STEREO-A',facecolors='white',edgecolors='tomato', alpha=al)
+ax2.scatter(ic.loc[stb_select_ind1,'icme_start_time'],ic.loc[stb_select_ind1,'mo_bzmin'], linestyle='None',marker='o',s=ms,label='min($B_{\mathrm{z}}$) in STEREO-B',facecolors='white',edgecolors='mediumslateblue', alpha=al)
+plt.xlabel('Date [years]')
+ax2.set_ylabel('Magnetic Field Strength in MO [nT]')
+ax2.legend(loc=1,fontsize=12)
 
 # Add labels to plots
 for ax, ann in zip([ax1, ax2], ['a', 'b']):
-    ax.text(0.03, .93, ann, transform=ax.transAxes, fontsize=32, weight='bold')
+    ax.text(0.03, .93, ann, transform=ax.transAxes, fontsize=20, weight='bold')
 
 #for ax, ann in zip([ax1, ax2], ['a', 'b']):
 #    ax.text(0.02, .93, ann, transform=ax.transAxes, fontsize=32, weight='bold')
@@ -535,15 +508,9 @@ print('Total:',np.size(win_select_ind1)+np.size(sta_select_ind1)+np.size(stb_sel
 
 # ## Figure 2: Parameter distribution plot 
 
-# In[14]:
+# In[21]:
 
 
-#make distribution plots
-#plt.figure(10,figsize=(12,5))
-#sns.histplot(ic.mo_sc_heliodistance)
-
-
-n_all=np.hstack([win_select_ind1,sta_select_ind1,stb_select_ind1])
 sns.set_context("talk")     
 sns.set_style('whitegrid')
 
@@ -551,14 +518,14 @@ fig=plt.figure(figsize=(15,10),dpi=75)
 
 fs=15
 ax1 = plt.subplot(221) 
-sns.histplot(ic.loc[n_all,'mo_bmean'], label='mean($B_t$) in MO',color='coral',alpha=0.5,kde=True,stat='probability',element='step')
+sns.histplot(ic.loc[n_all,'mo_bmean'], label='<$B_t$> in MO',color='coral',alpha=0.5,kde=True,stat='probability',element='step')
 sns.histplot(ic.loc[n_all,'mo_bmax'], label='max($B_t$) in MO',color='steelblue',kde=True,stat='probability', element='step')
 ax1.set_xlabel('B [nT]')
 ax1.set_ylim(0,0.21)
 plt.legend(loc=1,fontsize=fs)
 
 ax2 = plt.subplot(222) 
-sns.histplot(ic.loc[n_all,'mo_bzmean'],label='mean($B_z$) in MO',color='coral',alpha=0.5,kde=True,stat='probability', element='step')
+sns.histplot(ic.loc[n_all,'mo_bzmean'],label='<$B_z$> in MO',color='coral',alpha=0.5,kde=True,stat='probability', element='step')
 sns.histplot(ic.loc[n_all,'mo_bzmin'],label='min($B_z$) in MO',color='steelblue',kde=True,stat='probability', element='step')
 ax2.set_xlabel('B [nT]')
 #ax2.set_ylabel('')
@@ -566,14 +533,14 @@ ax2.set_ylim(0,0.21)
 plt.legend(loc=2,fontsize=fs)
 
 ax3 = plt.subplot(223) 
-sns.histplot(ic.loc[n_all,'icme_speed_mean'],label='mean($v_t$) of ICME',color='steelblue',kde=True,stat='probability', element='step')
+sns.histplot(ic.loc[n_all,'icme_speed_mean'],label='<$V_t$> in ICME',color='steelblue',kde=True,stat='probability', element='step')
 ax3.set_xlabel('V [km s$^{-1}$]')
 ax3.set_ylim(0,0.21)
 plt.legend(loc=1,fontsize=fs)
 
 ax4 = plt.subplot(224) 
-sns.histplot(ic.loc[n_all,'icme_duration']-ic.loc[n_iwinind,'mo_duration'],label='Sheath Duration',color='steelblue',kde=True,stat='probability', element='step')
-sns.histplot(ic.loc[n_all,'mo_duration'],label='MO Duration',color='coral',kde=True,stat='probability', element='step')
+sns.histplot(ic.loc[n_all,'icme_duration']-ic.loc[n_iwinind,'mo_duration'],label='Sheath duration',color='steelblue',kde=True,stat='probability', element='step')
+sns.histplot(ic.loc[n_all,'mo_duration'],label='MO duration',color='coral',kde=True,stat='probability', element='step')
 ax4.set_xlabel('hours')
 ax4.set_ylim(0,0.26)
 ax4.set_xlim(0,75)
@@ -599,7 +566,7 @@ plt.tight_layout()
 
 # Add labels to plots
 for ax, ann in zip([ax1, ax2, ax3, ax4], ['a', 'b','c','d']):
-    ax.text(-0.17, .93, ann, transform=ax.transAxes, fontsize=32, weight='bold')
+    ax.text(-0.17, .93, ann, transform=ax.transAxes, fontsize=26, weight='bold')
 
 argv3 ='fig2_dist.pdf'
 plt.savefig('plots/' + argv3)
@@ -607,7 +574,38 @@ argv3 ='fig2_dist.png'
 plt.savefig('plots/' + argv3)
 
 
-# In[15]:
+# In[24]:
+
+
+print('Statistics for the final '+str(len(n_all))+' selected events with sheath:')
+print()
+print("Average ICME length   : {:.2f} hours".format(((mo_end_time_num[n_all] - icme_start_time_num[n_all])*24.).mean()))
+print("Average MO length     : {:.2f} hours".format(((mo_end_time_num[n_all] - mo_start_time_num[n_all])*24.).mean()))
+print("Average SHEATH length : {:.2f} hours".format(((mo_start_time_num[n_all] - icme_start_time_num[n_all])*24.).mean()))
+print()
+print("STD ICME length       : {:.2f} hours".format(((mo_end_time_num[n_all] - icme_start_time_num[n_all])*24.).std()))
+print("STD MO length         : {:.2f} hours".format(((mo_end_time_num[n_all] - mo_start_time_num[n_all])*24.).std()))
+print("STD SHEATH length     : {:.2f} hours".format(((mo_start_time_num[n_all] - icme_start_time_num[n_all])*24.).std()))
+
+print()
+print("Average MO Bt max   : {:.2f} nT".format((ic.loc[n_all,'mo_bmax'].mean())))
+print("std MO Bt max   : {:.2f} nT".format((ic.loc[n_all,'mo_bmax'].std())))
+print()
+
+print("Average MO Bt   : {:.2f} nT".format((ic.loc[n_all,'mo_bmean'].mean())))
+print("std MO Bt   : {:.2f} nT".format((ic.loc[n_all,'mo_bmean'].std())))
+print()
+print("Average MO Bz   : {:.2f} nT".format((ic.loc[n_all,'mo_bzmean'].mean())))
+print("std MO Bz   : {:.2f} nT".format((ic.loc[n_all,'mo_bzmean'].std())))
+print()
+print("Average MO Bzmin   : {:.2f} nT".format((ic.loc[n_all,'mo_bzmin'].mean())))
+print("std MO Bzmin   : {:.2f} nT".format((ic.loc[n_all,'mo_bzmin'].std())))
+
+#print("Average SHEATH length : {:.2f} hours".format(((mo_start_time_num[n_all] - icme_start_time_num[n_all])*24.).mean()))
+print()
+
+
+# In[25]:
 
 
 """#Some tests...
@@ -638,7 +636,7 @@ print(np.nanmin(prop_event)/np.nanmax(prop_event))
 
 # #### Split data frame into training and testing
 
-# In[16]:
+# In[60]:
 
 
 # Testing data size in percent
@@ -672,7 +670,7 @@ test_ind = test.index.to_numpy()
 
 # #### Feature selection
 
-# In[17]:
+# In[61]:
 
 
 # Select features
@@ -703,7 +701,7 @@ pickle.dump([n_iwinind, n_istaind, n_istbind,
 
 # #### Select algorithms for machine learning
 
-# In[18]:
+# In[62]:
 
 
 # Define machine learning models
@@ -736,7 +734,7 @@ def evaluate_forecast(model, X, y, y_predict):
 
 # #### Test different machine learning algorithms
 
-# In[19]:
+# In[63]:
 
 
 # Use pickle to load training and testing data
@@ -768,7 +766,7 @@ for name, model in models.items():
 
 # #### Validation of machine learning models
 
-# In[20]:
+# In[64]:
 
 
 # Validate machine learning model on test data
@@ -782,7 +780,7 @@ for name, model in models.items():
 
 # #### Optimising model hyperparameters
 
-# In[21]:
+# In[65]:
 
 
 # Set to True when you want to redo the Hyperparameter tuning - takes a few minutes
@@ -792,7 +790,7 @@ gridsearch = False
 from sklearn.model_selection import RandomizedSearchCV
 
 
-# In[22]:
+# In[66]:
 
 
 if gridsearch:
@@ -824,7 +822,7 @@ cc1 = scipy.stats.pearsonr(np.squeeze(y_test), np.squeeze(y_pred1))[0]
 print("{:<10}{:6.2f}{:6.2f}".format('test', cc1, mae1))
 
 
-# In[23]:
+# In[67]:
 
 
 if gridsearch:
@@ -856,7 +854,7 @@ cc1 = scipy.stats.pearsonr(np.squeeze(y_test), np.squeeze(y_pred1))[0]
 print("{:<10}{:6.2f}{:6.2f}".format('test', cc1, mae1))
 
 
-# In[24]:
+# In[68]:
 
 
 # Select best models according to scores
@@ -869,7 +867,7 @@ y_pred2 = model2.predict(X_test)
 y_pred3 = model3.predict(X_test)
 
 
-# In[25]:
+# In[69]:
 
 
 importances = model3.feature_importances_
@@ -895,7 +893,7 @@ plt.savefig('plots/' + argv3, bbox_inches='tight')
 plt.show()
 
 
-# In[26]:
+# In[70]:
 
 
 # (n, 1) -- (n,)
@@ -907,7 +905,7 @@ y_pred3 = np.squeeze(y_pred3)
 #y_pred1 = y_pred1.reshape(-1,1)
 
 
-# In[27]:
+# In[71]:
 
 
 # Create scatter density plots for different models
@@ -981,7 +979,7 @@ plt.show()
 
 # #### Point-to-point comparison metrics
 
-# In[28]:
+# In[56]:
 
 
 import sklearn
@@ -1071,7 +1069,7 @@ print('Std. Obs.  = {:.2f}'.format(np.std(obs)))
 
 # #### Binary metrics
 
-# In[29]:
+# In[57]:
 
 
 # 2. Binary Metrics 
@@ -1161,7 +1159,7 @@ print('TSS  = {:.2f}'.format(tss,))
 print('Bias = {:.2f}'.format(bs,))
 
 
-# In[30]:
+# In[58]:
 
 
 '''
@@ -1200,7 +1198,7 @@ plt.show()
 
 # ## 3. Real-world Applications
 
-# In[31]:
+# In[59]:
 
 
 from matplotlib.dates import DateFormatter
@@ -1254,7 +1252,7 @@ def plot_all_mos(sat, n_ind, start_range, end_range, satname, varstr='min'):
     plt.show()
 
 
-# In[32]:
+# In[42]:
 
 
 #Example in Figure 1:
@@ -1262,7 +1260,7 @@ y_pred = y_pred3
 plot_all_mos(win, n_iwinind, 17, 20, 'Wind')
 
 
-# In[33]:
+# In[43]:
 
 
 y_pred = y_pred2
