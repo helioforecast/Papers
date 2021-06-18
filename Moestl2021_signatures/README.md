@@ -4,7 +4,7 @@
 https://github.com/helioforecast/Papers/tree/master/Moestl2021_signatures
 
 
-Code repository For paper Möstl et al. 2021 ApJ (in prep.).
+Code repository for paper Möstl et al. 2021 ApJ (in prep.).
 
 Authors: C. Möstl, A. J. Weiss IWF Graz, Austria; twitter @chrisoutofspace; https://github.com/cmoestl
 
