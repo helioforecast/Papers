@@ -12,7 +12,7 @@
 # Copy Version 8 from https://figshare.com/articles/dataset/Solar_wind_in_situ_data_suitable_for_machine_learning_python_numpy_arrays_STEREO-A_B_Wind_Parker_Solar_Probe_Ulysses_Venus_Express_MESSENGER/12058065
 # into folder /data.
 
-# In[1]:
+# In[72]:
 
 
 # Python Modules and Packages
@@ -70,7 +70,7 @@ os.system('jupyter nbconvert --to script mfrpred_mreiss_bz.ipynb')
 
 # #### File and folder variables:
 
-# In[2]:
+# In[73]:
 
 
 # Make plots and results folders
@@ -90,7 +90,7 @@ savepath_stb = 'stb_features.p'
 
 # #### Load HELCATS ICME data catalog
 
-# In[3]:
+# In[74]:
 
 
 [ic,header,parameters] = pickle.load(open('data/HELCATS_ICMECAT_v20_pandas.p', "rb" ))
@@ -124,7 +124,7 @@ vexi=np.where(ic.sc_insitu=='VEX')[0]
 
 # #### Load spacecraft data
 
-# In[4]:
+# In[75]:
 
 
 # Load Wind data
@@ -139,7 +139,7 @@ vexi=np.where(ic.sc_insitu=='VEX')[0]
 
 # #### Study only events with a sheath region
 
-# In[5]:
+# In[76]:
 
 
 # Event indices from STEREO and Wind
@@ -171,7 +171,7 @@ print('Percentage of all events',np.round((n_iwinind.shape[0] + n_istaind.shape[
 
 # #### Timing windows for features and labels
 
-# In[6]:
+# In[77]:
 
 
 # Set time window for features in hours
@@ -197,7 +197,7 @@ label_end = mo_end_time_num
 
 # #### Functions to compute features and labels
 
-# In[7]:
+# In[78]:
 
 
 # Compute mean, max and std-dev in feature time window
@@ -262,7 +262,7 @@ def get_label(sc_time, start_time, end_time, sc_ind, sc_label, label_type="max")
 
 # #### Create data frame for features and labels
 
-# In[8]:
+# In[79]:
 
 
 #contains all events that are finally selected
@@ -374,7 +374,7 @@ else:
 
 # #### Clean the data frame by removing NaNs 
 
-# In[9]:
+# In[80]:
 
 
 #get original indices of the 362 events
@@ -392,7 +392,7 @@ print(len(dfwin)+len(dfsta)+len(dfstb))
 print(len(win_select_ind)+len(sta_select_ind)+len(stb_select_ind))
 
 
-# In[10]:
+# In[81]:
 
 
 print(len(dfwin))
@@ -437,7 +437,7 @@ n_all=np.hstack([win_select_ind1,sta_select_ind1,stb_select_ind1])
 print(len(n_all))
 
 
-# In[11]:
+# In[82]:
 
 
 ##reduce dataframes finally to selected events
@@ -448,7 +448,7 @@ dfstb=dfstb1
 
 # ## Figure 1: ICME catalog 
 
-# In[12]:
+# In[83]:
 
 
 #markersize
@@ -508,7 +508,7 @@ print('Total:',np.size(win_select_ind1)+np.size(sta_select_ind1)+np.size(stb_sel
 
 # ## Figure 2: Parameter distribution plot 
 
-# In[21]:
+# In[84]:
 
 
 sns.set_context("talk")     
@@ -574,7 +574,7 @@ argv3 ='fig2_dist.png'
 plt.savefig('plots/' + argv3)
 
 
-# In[24]:
+# In[85]:
 
 
 print('Statistics for the final '+str(len(n_all))+' selected events with sheath:')
@@ -605,7 +605,7 @@ print("std MO Bzmin   : {:.2f} nT".format((ic.loc[n_all,'mo_bzmin'].std())))
 print()
 
 
-# In[25]:
+# In[86]:
 
 
 """#Some tests...
@@ -636,7 +636,7 @@ print(np.nanmin(prop_event)/np.nanmax(prop_event))
 
 # #### Split data frame into training and testing
 
-# In[60]:
+# In[87]:
 
 
 # Testing data size in percent
@@ -670,7 +670,7 @@ test_ind = test.index.to_numpy()
 
 # #### Feature selection
 
-# In[61]:
+# In[88]:
 
 
 # Select features
@@ -701,7 +701,7 @@ pickle.dump([n_iwinind, n_istaind, n_istbind,
 
 # #### Select algorithms for machine learning
 
-# In[62]:
+# In[89]:
 
 
 # Define machine learning models
@@ -734,7 +734,7 @@ def evaluate_forecast(model, X, y, y_predict):
 
 # #### Test different machine learning algorithms
 
-# In[63]:
+# In[90]:
 
 
 # Use pickle to load training and testing data
@@ -766,7 +766,7 @@ for name, model in models.items():
 
 # #### Validation of machine learning models
 
-# In[64]:
+# In[91]:
 
 
 # Validate machine learning model on test data
@@ -780,7 +780,7 @@ for name, model in models.items():
 
 # #### Optimising model hyperparameters
 
-# In[65]:
+# In[92]:
 
 
 # Set to True when you want to redo the Hyperparameter tuning - takes a few minutes
@@ -790,7 +790,7 @@ gridsearch = False
 from sklearn.model_selection import RandomizedSearchCV
 
 
-# In[66]:
+# In[93]:
 
 
 if gridsearch:
@@ -822,7 +822,7 @@ cc1 = scipy.stats.pearsonr(np.squeeze(y_test), np.squeeze(y_pred1))[0]
 print("{:<10}{:6.2f}{:6.2f}".format('test', cc1, mae1))
 
 
-# In[67]:
+# In[94]:
 
 
 if gridsearch:
@@ -854,7 +854,7 @@ cc1 = scipy.stats.pearsonr(np.squeeze(y_test), np.squeeze(y_pred1))[0]
 print("{:<10}{:6.2f}{:6.2f}".format('test', cc1, mae1))
 
 
-# In[68]:
+# In[95]:
 
 
 # Select best models according to scores
@@ -867,7 +867,7 @@ y_pred2 = model2.predict(X_test)
 y_pred3 = model3.predict(X_test)
 
 
-# In[69]:
+# In[96]:
 
 
 importances = model3.feature_importances_
@@ -893,7 +893,7 @@ plt.savefig('plots/' + argv3, bbox_inches='tight')
 plt.show()
 
 
-# In[70]:
+# In[97]:
 
 
 # (n, 1) -- (n,)
@@ -905,7 +905,7 @@ y_pred3 = np.squeeze(y_pred3)
 #y_pred1 = y_pred1.reshape(-1,1)
 
 
-# In[71]:
+# In[98]:
 
 
 # Create scatter density plots for different models
@@ -979,7 +979,7 @@ plt.show()
 
 # #### Point-to-point comparison metrics
 
-# In[56]:
+# In[99]:
 
 
 import sklearn
@@ -1069,7 +1069,7 @@ print('Std. Obs.  = {:.2f}'.format(np.std(obs)))
 
 # #### Binary metrics
 
-# In[57]:
+# In[100]:
 
 
 # 2. Binary Metrics 
@@ -1159,7 +1159,7 @@ print('TSS  = {:.2f}'.format(tss,))
 print('Bias = {:.2f}'.format(bs,))
 
 
-# In[58]:
+# In[101]:
 
 
 '''
@@ -1198,7 +1198,7 @@ plt.show()
 
 # ## 3. Real-world Applications
 
-# In[59]:
+# In[102]:
 
 
 from matplotlib.dates import DateFormatter
@@ -1252,7 +1252,7 @@ def plot_all_mos(sat, n_ind, start_range, end_range, satname, varstr='min'):
     plt.show()
 
 
-# In[42]:
+# In[103]:
 
 
 #Example in Figure 1:
@@ -1260,7 +1260,7 @@ y_pred = y_pred3
 plot_all_mos(win, n_iwinind, 17, 20, 'Wind')
 
 
-# In[43]:
+# In[104]:
 
 
 y_pred = y_pred2

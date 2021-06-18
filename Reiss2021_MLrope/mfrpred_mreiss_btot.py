@@ -12,7 +12,7 @@
 # Copy Version 8 from https://figshare.com/articles/dataset/Solar_wind_in_situ_data_suitable_for_machine_learning_python_numpy_arrays_STEREO-A_B_Wind_Parker_Solar_Probe_Ulysses_Venus_Express_MESSENGER/12058065
 # into folder /data.
 
-# In[1]:
+# In[35]:
 
 
 # Python Modules and Packages
@@ -57,7 +57,7 @@ os.system('jupyter nbconvert --to script mfrpred_mreiss_btot.ipynb')
 
 # #### File and folder variables:
 
-# In[2]:
+# In[36]:
 
 
 # Make plots and results folders
@@ -77,7 +77,7 @@ savepath_stb = 'stb_features.p'
 
 # #### Load HELCATS ICME data catalog
 
-# In[3]:
+# In[37]:
 
 
 [ic,header,parameters] = pickle.load(open('data/HELCATS_ICMECAT_v20_pandas.p', "rb" ))
@@ -100,7 +100,7 @@ mo_end_time_num = date2num(np.array(mo_end_time))
 
 # #### Load spacecraft data
 
-# In[4]:
+# In[38]:
 
 
 # Load Wind data
@@ -126,7 +126,7 @@ vexi=np.where(ic.sc_insitu=='VEX')[0]
 
 # #### Study only events with a sheath region
 
-# In[5]:
+# In[39]:
 
 
 # Event indices from STEREO and Wind
@@ -158,7 +158,7 @@ print('percentage of all events',np.round((n_iwinind.shape[0] + n_istaind.shape[
 
 # #### Timing windows for features and labels
 
-# In[6]:
+# In[40]:
 
 
 # Set time window for features in hours
@@ -184,7 +184,7 @@ label_end = mo_end_time_num
 
 # #### Functions to compute features and labels
 
-# In[7]:
+# In[63]:
 
 
 # Compute mean, max and std-dev in feature time window
@@ -225,31 +225,26 @@ def get_feature(name, sc_time, start_time, end_time, sc_ind, sc_feature):
 def get_label(sc_time, start_time, end_time, sc_ind, sc_label, label_type="max"):
     label_mean = np.zeros(np.size(sc_ind))
     label_max = np.zeros(np.size(sc_ind))
-    label_min = np.zeros(np.size(sc_ind))
 
     for p in np.arange(0, np.size(sc_ind)):
         time_slice = np.where(np.logical_and(sc_time > start_time[sc_ind[p]], sc_time < end_time[sc_ind[p]]))
         label_slice = sc_label[time_slice]
         if len(label_slice) == 0:
             label_max[p] = np.nan
-            label_min[p] = np.nan
             label_mean[p] = np.nan
         else:
             label_max[p] = np.nanmax(label_slice)
-            label_min[p] = np.min([np.nanmin(label_slice), 0])
             label_mean[p] = np.nanmean(label_slice)
             
     if label_type == 'max':
         return label_max
-    elif label_type == 'min':
-        return label_min
     elif label_type == 'mean':
         return label_mean
 
 
 # #### Create data frame for features and labels
 
-# In[8]:
+# In[42]:
 
 
 #contains all events that are finally selected
@@ -282,7 +277,7 @@ if not os.path.exists("mfr_predict/bz_fh{:.0f}_sta_features.p".format(feature_ho
         dwin['minmax('+variable+')'] = all_var_features[5]
 
     # Wind labels
-    label_btotmean = get_label(win['time'], label_start, label_end, n_iwinind, win['bz'], label_type=target_type)
+    label_btotmean = get_label(win['time'], label_start, label_end, n_iwinind, win['bt'], label_type=target_type)
     dwin['Target'] = label_btotmean
     
     # Create dataframe
@@ -307,7 +302,7 @@ if not os.path.exists("mfr_predict/bz_fh{:.0f}_sta_features.p".format(feature_ho
         dsta['minmax('+variable+')'] = all_var_features[5]
 
     # STEREO-A labels
-    label_btotmean = get_label(sta['time'], label_start, label_end, n_istaind, sta['bz'], label_type=target_type)
+    label_btotmean = get_label(sta['time'], label_start, label_end, n_istaind, sta['bt'], label_type=target_type)
     dsta['Target'] = label_btotmean
     
     # Create dateframe
@@ -334,7 +329,7 @@ if not os.path.exists("mfr_predict/bz_fh{:.0f}_sta_features.p".format(feature_ho
         dstb['minmax('+variable+')'] = all_var_features[5]
 
     # STEREO-B labels
-    label_btotmean = get_label(stb['time'], label_start, label_end, n_istbind, stb['bz'], label_type=target_type)
+    label_btotmean = get_label(stb['time'], label_start, label_end, n_istbind, stb['bt'], label_type=target_type)
     dstb['Target'] = label_btotmean
     
     # Create dataframe
@@ -361,7 +356,7 @@ else:
 
 # #### Clean the data frame by removing NaNs 
 
-# In[9]:
+# In[43]:
 
 
 #get original indices of the 362 events
@@ -379,7 +374,7 @@ print(len(dfwin)+len(dfsta)+len(dfstb))
 print(len(win_select_ind)+len(sta_select_ind)+len(stb_select_ind))
 
 
-# In[10]:
+# In[44]:
 
 
 print(len(dfwin))
@@ -424,7 +419,7 @@ n_all=np.hstack([win_select_ind1,sta_select_ind1,stb_select_ind1])
 print(len(n_all))
 
 
-# In[11]:
+# In[45]:
 
 
 ##reduce dataframes finally to selected events
@@ -433,7 +428,7 @@ dfsta=dfsta1
 dfstb=dfstb1
 
 
-# In[12]:
+# In[46]:
 
 
 print('Statistics for the final '+str(len(n_all))+' selected events with sheath:')
@@ -464,7 +459,7 @@ print("std MO Bzmin   : {:.2f} nT".format((ic.loc[n_all,'mo_bzmin'].std())))
 print()
 
 
-# In[13]:
+# In[47]:
 
 
 """#Some tests...
@@ -495,7 +490,7 @@ print(np.nanmin(prop_event)/np.nanmax(prop_event))
 
 # #### Split data frame into training and testing
 
-# In[14]:
+# In[48]:
 
 
 # Testing data size in percent
@@ -529,7 +524,7 @@ test_ind = test.index.to_numpy()
 
 # #### Feature selection
 
-# In[15]:
+# In[49]:
 
 
 # Select features
@@ -560,7 +555,7 @@ pickle.dump([n_iwinind, n_istaind, n_istbind,
 
 # #### Select algorithms for machine learning
 
-# In[16]:
+# In[50]:
 
 
 # Define machine learning models
@@ -593,7 +588,7 @@ def evaluate_forecast(model, X, y, y_predict):
 
 # #### Test different machine learning algorithms
 
-# In[19]:
+# In[51]:
 
 
 # Use pickle to load training and testing data
@@ -625,7 +620,7 @@ for name, model in models.items():
 
 # #### Validation of machine learning models
 
-# In[20]:
+# In[52]:
 
 
 # Validate machine learning model on test data
@@ -639,7 +634,7 @@ for name, model in models.items():
 
 # #### Optimising model hyperparameters
 
-# In[21]:
+# In[53]:
 
 
 # Set to True when you want to redo the Hyperparameter tuning - takes a few minutes
@@ -649,7 +644,7 @@ gridsearch = False
 from sklearn.model_selection import RandomizedSearchCV
 
 
-# In[22]:
+# In[54]:
 
 
 '''
@@ -682,7 +677,7 @@ print("{:<10}{:6.2f}{:6.2f}".format('test', cc1, mae1))
 '''
 
 
-# In[23]:
+# In[55]:
 
 
 '''
@@ -716,7 +711,7 @@ print("{:<10}{:6.2f}{:6.2f}".format('test', cc1, mae1))
 '''
 
 
-# In[24]:
+# In[56]:
 
 
 # Select best models according to scores
@@ -729,7 +724,7 @@ y_pred2 = model2.predict(X_test)
 y_pred3 = model3.predict(X_test)
 
 
-# In[25]:
+# In[57]:
 
 
 sns.set_context("talk")     
@@ -757,7 +752,7 @@ plt.savefig('plots/' + argv3, bbox_inches='tight')
 plt.show()
 
 
-# In[26]:
+# In[58]:
 
 
 # (n, 1) -- (n,)
@@ -769,7 +764,7 @@ y_pred3 = np.squeeze(y_pred3)
 #y_pred1 = y_pred1.reshape(-1,1)
 
 
-# In[27]:
+# In[59]:
 
 
 # Create scatter density plots for different models
