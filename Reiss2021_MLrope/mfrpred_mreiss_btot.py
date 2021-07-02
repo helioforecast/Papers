@@ -12,7 +12,7 @@
 # Copy Version 8 from https://figshare.com/articles/dataset/Solar_wind_in_situ_data_suitable_for_machine_learning_python_numpy_arrays_STEREO-A_B_Wind_Parker_Solar_Probe_Ulysses_Venus_Express_MESSENGER/12058065
 # into folder /data.
 
-# In[35]:
+# In[1]:
 
 
 # Python Modules and Packages
@@ -57,7 +57,7 @@ os.system('jupyter nbconvert --to script mfrpred_mreiss_btot.ipynb')
 
 # #### File and folder variables:
 
-# In[36]:
+# In[2]:
 
 
 # Make plots and results folders
@@ -77,7 +77,7 @@ savepath_stb = 'stb_features.p'
 
 # #### Load HELCATS ICME data catalog
 
-# In[37]:
+# In[3]:
 
 
 [ic,header,parameters] = pickle.load(open('data/HELCATS_ICMECAT_v20_pandas.p', "rb" ))
@@ -100,7 +100,7 @@ mo_end_time_num = date2num(np.array(mo_end_time))
 
 # #### Load spacecraft data
 
-# In[38]:
+# In[4]:
 
 
 # Load Wind data
@@ -126,7 +126,7 @@ vexi=np.where(ic.sc_insitu=='VEX')[0]
 
 # #### Study only events with a sheath region
 
-# In[39]:
+# In[5]:
 
 
 # Event indices from STEREO and Wind
@@ -158,7 +158,7 @@ print('percentage of all events',np.round((n_iwinind.shape[0] + n_istaind.shape[
 
 # #### Timing windows for features and labels
 
-# In[40]:
+# In[6]:
 
 
 # Set time window for features in hours
@@ -184,7 +184,7 @@ label_end = mo_end_time_num
 
 # #### Functions to compute features and labels
 
-# In[63]:
+# In[7]:
 
 
 # Compute mean, max and std-dev in feature time window
@@ -225,26 +225,31 @@ def get_feature(name, sc_time, start_time, end_time, sc_ind, sc_feature):
 def get_label(sc_time, start_time, end_time, sc_ind, sc_label, label_type="max"):
     label_mean = np.zeros(np.size(sc_ind))
     label_max = np.zeros(np.size(sc_ind))
+    label_min = np.zeros(np.size(sc_ind))
 
     for p in np.arange(0, np.size(sc_ind)):
         time_slice = np.where(np.logical_and(sc_time > start_time[sc_ind[p]], sc_time < end_time[sc_ind[p]]))
         label_slice = sc_label[time_slice]
         if len(label_slice) == 0:
             label_max[p] = np.nan
+            label_min[p] = np.nan
             label_mean[p] = np.nan
         else:
             label_max[p] = np.nanmax(label_slice)
+            label_min[p] = np.min([np.nanmin(label_slice), 0])
             label_mean[p] = np.nanmean(label_slice)
             
     if label_type == 'max':
         return label_max
+    elif label_type == 'min':
+        return label_min
     elif label_type == 'mean':
         return label_mean
 
 
 # #### Create data frame for features and labels
 
-# In[42]:
+# In[8]:
 
 
 #contains all events that are finally selected
@@ -252,16 +257,14 @@ win_select_ind=[]
 sta_select_ind=[]
 stb_select_ind=[]
 
-
 # Compute either 'max' or 'mean' of total magnetic field in label time window
 target_type = 'max'
 
 # List of physical properties
 variable_list = ['bx', 'by', 'bz', 'bt', 'vt','np','tp']
 
-
 # If file doesn't exist, create it, otherwise load it
-if not os.path.exists("mfr_predict/bz_fh{:.0f}_sta_features.p".format(feature_hours)):
+if not os.path.exists("mfr_predict/btot_fh{:.0f}_sta_features.p".format(feature_hours)):
     start_time = time.time()
     print("Option 1: Compute features...")
 
@@ -314,8 +317,6 @@ if not os.path.exists("mfr_predict/bz_fh{:.0f}_sta_features.p".format(feature_ho
     sta_select_ind=sta_select_ind[0:sta_select_size]
     pickle.dump(sta_select_ind, open(os.path.join(mfrdir, 'btot_orig_ind_' + savepath_sta), "wb"))
 
-
-    
     #################### STEREO-B features
     dstb = {}
     for variable in variable_list:
@@ -341,8 +342,6 @@ if not os.path.exists("mfr_predict/bz_fh{:.0f}_sta_features.p".format(feature_ho
     stb_select_ind=stb_select_ind[0:stb_select_size]
     pickle.dump(stb_select_ind, open(os.path.join(mfrdir, 'btot_orig_ind_' + savepath_stb), "wb"))
 
-   
-    
     print("Option 1: Computation of data frame for Wind, STEREO-A, and STEREO-B completed")   
     end_time = time.time()
     print("Computation of features took {:.1f} minutes.".format((end_time - start_time)/60.))
@@ -356,15 +355,13 @@ else:
 
 # #### Clean the data frame by removing NaNs 
 
-# In[43]:
+# In[9]:
 
 
 #get original indices of the 362 events
-
 win_select_ind = pickle.load(open(os.path.join(mfrdir, 'btot_orig_ind_' + savepath_win), "rb"))
 sta_select_ind= pickle.load(open(os.path.join(mfrdir, 'btot_orig_ind_' + savepath_sta), "rb"))
 stb_select_ind = pickle.load(open(os.path.join(mfrdir, 'btot_orig_ind_' + savepath_stb), "rb"))
-
 
 win_select_ind=np.array(win_select_ind)
 sta_select_ind=np.array(sta_select_ind)
@@ -374,13 +371,12 @@ print(len(dfwin)+len(dfsta)+len(dfstb))
 print(len(win_select_ind)+len(sta_select_ind)+len(stb_select_ind))
 
 
-# In[44]:
+# In[10]:
 
 
 print(len(dfwin))
 print(len(dfsta))
 print(len(dfstb))
-
 
 # Events before tidying up
 len_dfwin_nans = len(dfwin)
@@ -408,7 +404,6 @@ print(len(dfwin1), len(win_select_ind1))
 print(len(dfsta1),len(sta_select_ind1))
 print(len(dfstb1),len(stb_select_ind1))
 
-
 print("{} nans removed from WIND data".format(len_dfwin_nans-len(dfwin1)))
 print("{} nans removed from STEREO-A data".format(len_dfsta_nans-len(dfsta1)))
 print("{} nans removed from STEREO-B data".format(len_dfstb_nans-len(dfstb1)))
@@ -419,7 +414,7 @@ n_all=np.hstack([win_select_ind1,sta_select_ind1,stb_select_ind1])
 print(len(n_all))
 
 
-# In[45]:
+# In[11]:
 
 
 ##reduce dataframes finally to selected events
@@ -428,7 +423,7 @@ dfsta=dfsta1
 dfstb=dfstb1
 
 
-# In[46]:
+# In[12]:
 
 
 print('Statistics for the final '+str(len(n_all))+' selected events with sheath:')
@@ -459,7 +454,7 @@ print("std MO Bzmin   : {:.2f} nT".format((ic.loc[n_all,'mo_bzmin'].std())))
 print()
 
 
-# In[47]:
+# In[13]:
 
 
 """#Some tests...
@@ -490,7 +485,7 @@ print(np.nanmin(prop_event)/np.nanmax(prop_event))
 
 # #### Split data frame into training and testing
 
-# In[48]:
+# In[14]:
 
 
 # Testing data size in percent
@@ -524,7 +519,7 @@ test_ind = test.index.to_numpy()
 
 # #### Feature selection
 
-# In[49]:
+# In[15]:
 
 
 # Select features
@@ -543,7 +538,7 @@ y_train = np.array(train['Target']).reshape(-1, 1)
 y_test = np.array(test['Target']).reshape(-1, 1)
 
 # Use pickle to save training and testing data
-fname = os.path.join(mfrdir, 'fh{:.0f}_train_test_data.p'.format(feature_hours))
+fname = os.path.join(mfrdir, 'btot_fh{:.0f}_train_test_data.p'.format(feature_hours))
 pickle.dump([n_iwinind, n_istaind, n_istbind, 
              win_train_ind, win_test_ind, 
              sta_train_ind, sta_test_ind, 
@@ -555,7 +550,7 @@ pickle.dump([n_iwinind, n_istaind, n_istbind,
 
 # #### Select algorithms for machine learning
 
-# In[50]:
+# In[16]:
 
 
 # Define machine learning models
@@ -588,11 +583,11 @@ def evaluate_forecast(model, X, y, y_predict):
 
 # #### Test different machine learning algorithms
 
-# In[51]:
+# In[17]:
 
 
 # Use pickle to load training and testing data
-savepath_traintest ='fh{:.0f}_train_test_data.p'.format(feature_hours)
+savepath_traintest ='btot_fh{:.0f}_train_test_data.p'.format(feature_hours)
 fname = 'mfr_predict/' + savepath_traintest
 [n_iwinind, n_istaind, n_istbind, win_train_ind, win_test_ind, sta_train_ind, sta_test_ind, 
      stb_train_ind, stb_test_ind, train_ind, test_ind, 
@@ -620,7 +615,7 @@ for name, model in models.items():
 
 # #### Validation of machine learning models
 
-# In[52]:
+# In[18]:
 
 
 # Validate machine learning model on test data
@@ -634,7 +629,7 @@ for name, model in models.items():
 
 # #### Optimising model hyperparameters
 
-# In[53]:
+# In[19]:
 
 
 # Set to True when you want to redo the Hyperparameter tuning - takes a few minutes
@@ -644,22 +639,22 @@ gridsearch = False
 from sklearn.model_selection import RandomizedSearchCV
 
 
-# In[54]:
+# In[20]:
 
 
-'''
 if gridsearch:
-    gbr_param_grid = {'n_estimators': [100, 200, 300, 400],
+    gbr_param_grid = {'n_estimators': [100, 125, 150, 175, 200, 225, 250, 275, 300, 325, 350, 375, 400],
                       'min_samples_split': [2, 3, 4, 5],
                       'min_samples_leaf': [1, 2, 3, 4],
-                      'max_depth': [2, 3, 4, 5]}
+                      'max_depth': [2, 3, 4, 5],
+                      'learning_rate': [0.01, 0.1]}
     clf_gbr = GradientBoostingRegressor()
     clf = RandomizedSearchCV(clf_gbr, gbr_param_grid, n_iter=200, cv=3, verbose=1)
     cv_model = clf.fit(X_train, y_train)
     best_params_gbr = cv_model.best_params_
 else:
-    best_params_gbr = {'n_estimators': 200, 'min_samples_split': 2,
-                       'min_samples_leaf': 1, 'max_depth': 2}
+    best_params_gbr = {'n_estimators': 400, 'min_samples_split': 3,
+                       'min_samples_leaf': 1, 'max_depth': 3, 'learning_rate': 0.01}
     
 print(best_params_gbr)
 models['gbr'] = GradientBoostingRegressor(**best_params_gbr)
@@ -674,13 +669,11 @@ y_pred1 = models['gbr'].predict(X_test)
 mae1 = mean_absolute_error(np.squeeze(y_test), np.squeeze(y_pred1))
 cc1 = scipy.stats.pearsonr(np.squeeze(y_test), np.squeeze(y_pred1))[0]
 print("{:<10}{:6.2f}{:6.2f}".format('test', cc1, mae1))
-'''
 
 
-# In[55]:
+# In[21]:
 
 
-'''
 if gridsearch:
     rfr_param_grid = {'n_estimators': [100, 200, 300, 400],
                       'min_samples_split': [2, 3, 4, 5],
@@ -691,8 +684,8 @@ if gridsearch:
     cv_model_rfr = clf_rfr.fit(X_train, y_train)
     best_params_rfr = cv_model_rfr.best_params_
 else:
-    best_params_rfr = {'n_estimators': 300, 'min_samples_split': 3, 
-                       'min_samples_leaf': 3, 'max_depth': 5}
+    best_params_rfr = {'n_estimators': 100, 'min_samples_split': 2, 
+                       'min_samples_leaf': 3, 'max_depth': 4}
     
 print(best_params_rfr)
 models['rfr'] = RandomForestRegressor(**best_params_rfr)
@@ -708,10 +701,9 @@ y_pred1 = models['rfr'].predict(X_test)
 mae1 = mean_absolute_error(np.squeeze(y_test), np.squeeze(y_pred1))
 cc1 = scipy.stats.pearsonr(np.squeeze(y_test), np.squeeze(y_pred1))[0]
 print("{:<10}{:6.2f}{:6.2f}".format('test', cc1, mae1))
-'''
 
 
-# In[56]:
+# In[22]:
 
 
 # Select best models according to scores
@@ -724,7 +716,7 @@ y_pred2 = model2.predict(X_test)
 y_pred3 = model3.predict(X_test)
 
 
-# In[57]:
+# In[26]:
 
 
 sns.set_context("talk")     
@@ -732,27 +724,27 @@ sns.set_style('whitegrid')
 
 importances = model3.feature_importances_
 indices = np.argsort(importances)
-feat_imps_rfr = pd.Series(model2.feature_importances_, use_features).sort_values(ascending=False)[0:15]
-feat_imps_gbr = pd.Series(model3.feature_importances_, use_features).sort_values(ascending=False)[0:15]
+feat_imps_rfr = pd.Series(model2.feature_importances_, use_features).sort_values(ascending=False)[0:10]
+feat_imps_gbr = pd.Series(model3.feature_importances_, use_features).sort_values(ascending=False)[0:10]
 
 # Plot the feature importances of the forest
 fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(12,4))
-feat_imps_rfr.plot(kind='bar', title="Feature importances in RFR", ax=ax1)
-feat_imps_gbr.plot(kind='bar', title="Feature importances in GBR", ax=ax2)
+feat_imps_rfr.plot(kind='bar', title="Feature importances in RFR for max(B$_{\mathrm{t}}$)", ax=ax1)
+feat_imps_gbr.plot(kind='bar', title="Feature importances in GBR for max(B$_{\mathrm{t}}$)", ax=ax2)
 plt.subplots_adjust(wspace=0.2)
 
 # Possible method of interpretation for LR:
 # https://scikit-learn.org/stable/auto_examples/inspection/plot_linear_model_coefficient_interpretation.html
 
 for ax, ann in zip([ax1, ax2], ['c', 'd']):
-    ax.text(.9, .9, ann, transform=ax.transAxes, fontsize=18, weight='bold')
+    ax.text(.9, .9, ann, transform=ax.transAxes, fontsize=24, weight='bold')
 
 argv3='feature_importance_maxbt_{}h.pdf'.format(feature_hours)  
 plt.savefig('plots/' + argv3, bbox_inches='tight')
 plt.show()
 
 
-# In[58]:
+# In[24]:
 
 
 # (n, 1) -- (n,)
@@ -764,11 +756,12 @@ y_pred3 = np.squeeze(y_pred3)
 #y_pred1 = y_pred1.reshape(-1,1)
 
 
-# In[59]:
+# In[25]:
 
 
 # Create scatter density plots for different models
 from scipy.stats import gaussian_kde
+from matplotlib.ticker import (AutoMinorLocator, MultipleLocator)
 
 fig, [(ax1,ax2),(ax3,ax4)] = plt.subplots(2, 2,figsize=(12,12))
 
@@ -784,9 +777,14 @@ ax1.set_xlim([0,35])
 ax1.set_ylim([0,35])
 ax1.set_aspect('equal', 'box')
 ax1.text(30, 1, 'LR', fontsize=18)
-ax1.set_xlabel('max($B_{\mathrm{tot}}$) observed [nT]', fontsize=14)
-ax1.set_ylabel('max($B_{\mathrm{tot}}$) predicted [nT]', fontsize=14)
+ax1.set_xlabel('max(B$_{\mathrm{t}}$) observed [nT]', fontsize=14)
+ax1.set_ylabel('max(B$_{\mathrm{t}}$) predicted [nT]', fontsize=14)
 ax1.plot([-100, 100],[-100, 100], ls=":")
+
+# Change major ticks
+ax1.xaxis.set_major_locator(MultipleLocator(5))
+ax1.yaxis.set_major_locator(MultipleLocator(5))
+
 x = y_test
 y = y_pred2
 xy = np.vstack([x,y])
@@ -799,9 +797,13 @@ ax2.set_xlim([0,35])
 ax2.set_ylim([0,35])
 ax2.set_aspect('equal', 'box')
 ax2.text(30, 1, 'RFR', fontsize=18)
-ax2.set_xlabel('max($B_{\mathrm{tot}}$) observed [nT]', fontsize=14)
-ax2.set_ylabel('max($B_{\mathrm{tot}}$) predicted [nT]', fontsize=14)
+ax2.set_xlabel('max(B$_{\mathrm{t}}$) observed [nT]', fontsize=14)
+ax2.set_ylabel('max(B$_{\mathrm{t}}$) predicted [nT]', fontsize=14)
 ax2.plot([-100, 100],[-100,100], ls=":")
+
+# Change major ticks
+ax2.xaxis.set_major_locator(MultipleLocator(5))
+ax2.yaxis.set_major_locator(MultipleLocator(5))
 
 x = y_test
 y = y_pred3
@@ -816,19 +818,26 @@ ax3.set_xlim([0,35])
 ax3.set_ylim([0,35])
 ax3.set_aspect('equal', 'box')
 ax3.text(30, 1, 'GBR', fontsize=18)
-ax3.set_xlabel('max($B_{\mathrm{tot}}$) observed [nT]', fontsize=14)
-ax3.set_ylabel('max($B_{\mathrm{tot}}$) predicted [nT]', fontsize=14)
+ax3.set_xlabel('max(B$_{\mathrm{t}}$) observed [nT]', fontsize=14)
+ax3.set_ylabel('max(B$_{\mathrm{t}}$) predicted [nT]', fontsize=14)
+
+# Change major ticks
+ax3.xaxis.set_major_locator(MultipleLocator(5))
+ax3.yaxis.set_major_locator(MultipleLocator(5))
 
 ax4.boxplot([np.abs(y_test-y_pred1),np.abs(y_test-y_pred2),np.abs(y_test-y_pred3)])
-ax4.set_ylim([-1,15])
+ax4.set_ylim([-1,12])
 plt.xticks([1, 2, 3], ['LR', 'RFR', 'GBR'], fontsize=14)
 asp = np.diff(ax4.get_xlim())[0] / np.diff(ax4.get_ylim())[0]
 ax4.set_aspect(asp)
 ax4.set_ylabel('Absolute Errors [nT]', fontsize=14)
 
+# Change major ticks
+ax4.yaxis.set_major_locator(MultipleLocator(2))
+
 plt.subplots_adjust(wspace=0.25)
 for ax, ann in zip([ax1, ax2, ax3, ax4], ['a', 'b', 'c', 'd']):
-    ax.text(.05, .9, ann, transform=ax.transAxes, fontsize=20, weight='bold')
+    ax.text(.05, .9, ann, transform=ax.transAxes, fontsize=22, weight='bold')
 
 argv3='scatter_plot_maxbt_{}h.pdf'.format(feature_hours)  
 plt.savefig('plots/' + argv3, bbox_inches='tight')
@@ -837,7 +846,7 @@ plt.show()
 
 # #### Point-to-point comparison metrics
 
-# In[28]:
+# In[26]:
 
 
 import sklearn
@@ -867,67 +876,84 @@ def skillScore(mod, obs):
 
 # 1. Compute point-to-point comparison metrics 
 obs = y_test
-me = meanError(y_pred1, obs)
-mae = meanAbsoluteError(y_pred1, obs)
-mse = meanSquaredError(y_pred1, obs)
-rmse = rootMeanSquaredError(y_pred1, obs)
-ss = skillScore(y_pred1, obs)
-pcc = scipy.stats.pearsonr(np.squeeze(obs), np.squeeze(y_pred1))[0]
+me1 = meanError(y_pred1, obs)
+mae1 = meanAbsoluteError(y_pred1, obs)
+mse1 = meanSquaredError(y_pred1, obs)
+rmse1 = rootMeanSquaredError(y_pred1, obs)
+ss1 = skillScore(y_pred1, obs)
+pcc1 = scipy.stats.pearsonr(np.squeeze(obs), np.squeeze(y_pred1))[0]
 
 # Print results
 print(), print('(LR):', feature_hours)
 print('Mean = {:.2f}'.format(np.mean(y_pred1)))
 print('Std  = {:.2f}'.format(np.std(y_pred1)))
-print('ME   = {:.2f}'.format(me))
-print('MAE  = {:.2f}, sklearn: {:.2f}'.format(mae, sklearn.metrics.mean_absolute_error(obs, y_pred1)))
-print('MSE  = {:.2f}, sklearn: {:.2f}'.format(mse, sklearn.metrics.mean_squared_error(obs, y_pred1)))
-print('RMSE = {:.2f}, sklearn: {:.2f}'.format(rmse, np.sqrt(sklearn.metrics.mean_squared_error(obs, y_pred1))))
-print('SS   = {:.2f}'.format(ss,))
-print('PCC  = {:.2f}'.format(pcc,))
+print('ME   = {:.2f}'.format(me1))
+print('MAE  = {:.2f}, sklearn: {:.2f}'.format(mae1, sklearn.metrics.mean_absolute_error(obs, y_pred1)))
+print('MSE  = {:.2f}, sklearn: {:.2f}'.format(mse1, sklearn.metrics.mean_squared_error(obs, y_pred1)))
+print('RMSE = {:.2f}, sklearn: {:.2f}'.format(rmse1, np.sqrt(sklearn.metrics.mean_squared_error(obs, y_pred1))))
+print('SS   = {:.2f}'.format(ss1,))
+print('PCC  = {:.2f}'.format(pcc1,))
 
-me = meanError(y_pred2, obs)
-mae = meanAbsoluteError(y_pred2, obs)
-mse = meanSquaredError(y_pred2, obs)
-rmse = rootMeanSquaredError(y_pred2, obs)
-ss = skillScore(y_pred2, obs)
-pcc = scipy.stats.pearsonr(np.squeeze(obs), np.squeeze(y_pred2))[0]
+me2 = meanError(y_pred2, obs)
+mae2 = meanAbsoluteError(y_pred2, obs)
+mse2 = meanSquaredError(y_pred2, obs)
+rmse2 = rootMeanSquaredError(y_pred2, obs)
+ss2 = skillScore(y_pred2, obs)
+pcc2 = scipy.stats.pearsonr(np.squeeze(obs), np.squeeze(y_pred2))[0]
 
 # Print results
 print(), print('(RFR):', feature_hours)
 print('Mean = {:.2f}'.format(np.mean(y_pred2)))
 print('Std  = {:.2f}'.format(np.std(y_pred2)))
-print('ME   = {:.2f}'.format(me))
-print('MAE  = {:.2f}, sklearn: {:.2f}'.format(mae, sklearn.metrics.mean_absolute_error(obs, y_pred2)))
-print('MSE  = {:.2f}, sklearn: {:.2f}'.format(mse, sklearn.metrics.mean_squared_error(obs, y_pred2)))
-print('RMSE = {:.2f}, sklearn: {:.2f}'.format(rmse, np.sqrt(sklearn.metrics.mean_squared_error(obs, y_pred2))))
-print('SS   = {:.2f}'.format(ss,))
-print('PCC  = {:.2f}'.format(pcc,))
+print('ME   = {:.2f}'.format(me2))
+print('MAE  = {:.2f}, sklearn: {:.2f}'.format(mae2, sklearn.metrics.mean_absolute_error(obs, y_pred2)))
+print('MSE  = {:.2f}, sklearn: {:.2f}'.format(mse2, sklearn.metrics.mean_squared_error(obs, y_pred2)))
+print('RMSE = {:.2f}, sklearn: {:.2f}'.format(rmse2, np.sqrt(sklearn.metrics.mean_squared_error(obs, y_pred2))))
+print('SS   = {:.2f}'.format(ss2,))
+print('PCC  = {:.2f}'.format(pcc2,))
 
-me = meanError(y_pred3, obs)
-mae = meanAbsoluteError(y_pred3, obs)
-mse = meanSquaredError(y_pred3, obs)
-rmse = rootMeanSquaredError(y_pred3, obs)
-ss = skillScore(y_pred3, obs)
-pcc = scipy.stats.pearsonr(np.squeeze(obs), np.squeeze(y_pred3))[0]
+me3 = meanError(y_pred3, obs)
+mae3 = meanAbsoluteError(y_pred3, obs)
+mse3 = meanSquaredError(y_pred3, obs)
+rmse3 = rootMeanSquaredError(y_pred3, obs)
+ss3 = skillScore(y_pred3, obs)
+pcc3 = scipy.stats.pearsonr(np.squeeze(obs), np.squeeze(y_pred3))[0]
 
 # Print results
 print(), print('(GBR):', feature_hours)
 print('Mean = {:.2f}'.format(np.mean(y_pred3)))
 print('Std  = {:.2f}'.format(np.std(y_pred3)))
-print('ME   = {:.2f}'.format(me))
-print('MAE  = {:.2f}, sklearn: {:.2f}'.format(mae, sklearn.metrics.mean_absolute_error(obs, y_pred3)))
-print('MSE  = {:.2f}, sklearn: {:.2f}'.format(mse, sklearn.metrics.mean_squared_error(obs, y_pred3)))
-print('RMSE = {:.2f}, sklearn: {:.2f}'.format(rmse, np.sqrt(sklearn.metrics.mean_squared_error(obs, y_pred3))))
-print('SS   = {:.2f}'.format(ss,))
-print('PCC  = {:.2f}'.format(pcc,))
+print('ME   = {:.2f}'.format(me3))
+print('MAE  = {:.2f}, sklearn: {:.2f}'.format(mae3, sklearn.metrics.mean_absolute_error(obs, y_pred3)))
+print('MSE  = {:.2f}, sklearn: {:.2f}'.format(mse3, sklearn.metrics.mean_squared_error(obs, y_pred3)))
+print('RMSE = {:.2f}, sklearn: {:.2f}'.format(rmse3, np.sqrt(sklearn.metrics.mean_squared_error(obs, y_pred3))))
+print('SS   = {:.2f}'.format(ss3,))
+print('PCC  = {:.2f}'.format(pcc3,))
 print()
 print('Mean Obs. = {:.2f}'.format(np.mean(obs)))
 print('Std. Obs.  = {:.2f}'.format(np.std(obs)))
 
+#Latex table format
+print()
+print('Latex Table Format:')
+print('max($B_\\textrm{tot}$)','&','LR','&','{:.2f}'.format(np.mean(y_pred1)),'&','{:.2f}'.format(np.std(y_pred1)), '&' 
+     '{:.2f}'.format(me1), '&', '{:.2f}'.format(mae1), '&', '{:.2f}'.format(rmse1), '&', '{:.2f}'.format(ss1), '&', '{:.2f}'.format(pcc1),'\\\\')
+
+print('max($B_\\textrm{tot}$)','&','RFR','&','{:.2f}'.format(np.mean(y_pred2)),'&','{:.2f}'.format(np.std(y_pred2)), '&' 
+     '{:.2f}'.format(me2), '&', '{:.2f}'.format(mae2), '&', '{:.2f}'.format(rmse2), '&', '{:.2f}'.format(ss2), '&', '{:.2f}'.format(pcc2),'\\\\')
+
+print('max($B_\\textrm{tot}$)','&','GBR','&','{:.2f}'.format(np.mean(y_pred3)),'&','{:.2f}'.format(np.std(y_pred3)), '&' 
+     '{:.2f}'.format(me3), '&', '{:.2f}'.format(mae3), '&', '{:.2f}'.format(rmse3), '&', '{:.2f}'.format(ss3), '&', '{:.2f}'.format(pcc3),'\\\\')
+
+# Save results as np array
+argv3='btot_{}h_error_measures'.format(feature_hours)  
+res_array = np.array([[me1, mae1, mse1, rmse1, ss1, pcc1], [me2, mae2, mse2, rmse2, ss2, pcc2], [me3, mae3, mse3, rmse3, ss3, pcc3]])
+np.save('mfr_results/' + argv3, res_array)
+
 
 # #### Binary metrics
 
-# In[29]:
+# In[27]:
 
 
 # 2. Binary Metrics 
@@ -965,96 +991,191 @@ def bias(ct):
 
 # 2. Compute binary metrics
 threshold = obs.mean()
-ct = contingencyTable(y_pred1,obs,threshold)
-tpr = truePostiveRate(ct)
-fpr = falsePostiveRate(ct)
-ts  = threatScore(ct)
-tss = trueSkillStatistics(ct)
-bs  = bias(ct)
+ct1 = contingencyTable(y_pred1,obs,threshold)
+tpr1 = truePostiveRate(ct1)
+fpr1 = falsePostiveRate(ct1)
+ts1  = threatScore(ct1)
+tss1 = trueSkillStatistics(ct1)
+bs1  = bias(ct1)
 
 # Print results
 print(), print('(LR):')
-print(ct)
+print(ct1)
 print('TH   = {:.2f}'.format(threshold,))
-print('TPR  = {:.2f}'.format(tpr,))
-print('FPR  = {:.2f}'.format(fpr,))
-print('TS   = {:.2f}'.format(ts,))
-print('TSS  = {:.2f}'.format(tss,))
-print('Bias = {:.2f}'.format(bs,))
+print('TPR  = {:.2f}'.format(tpr1,))
+print('FPR  = {:.2f}'.format(fpr1,))
+print('TS   = {:.2f}'.format(ts1,))
+print('TSS  = {:.2f}'.format(tss1,))
+print('Bias = {:.2f}'.format(bs1,))
 
-ct = contingencyTable(y_pred2,obs,threshold)
-tpr = truePostiveRate(ct)
-fpr = falsePostiveRate(ct)
-ts  = threatScore(ct)
-tss = trueSkillStatistics(ct)
-bs  = bias(ct)
+ct2 = contingencyTable(y_pred2,obs,threshold)
+tpr2 = truePostiveRate(ct2)
+fpr2 = falsePostiveRate(ct2)
+ts2  = threatScore(ct2)
+tss2 = trueSkillStatistics(ct2)
+bs2  = bias(ct2)
 
 # Print results
 print(), print('(RFR):')
-print(ct)
+print(ct2)
 print('TH   = {:.2f}'.format(threshold,))
-print('TPR  = {:.2f}'.format(tpr,))
-print('FPR  = {:.2f}'.format(fpr,))
-print('TS   = {:.2f}'.format(ts,))
-print('TSS  = {:.2f}'.format(tss,))
-print('Bias = {:.2f}'.format(bs,))
+print('TPR  = {:.2f}'.format(tpr2,))
+print('FPR  = {:.2f}'.format(fpr2,))
+print('TS   = {:.2f}'.format(ts2,))
+print('TSS  = {:.2f}'.format(tss2,))
+print('Bias = {:.2f}'.format(bs2,))
 
-ct = contingencyTable(y_pred3,obs,threshold)
-tpr = truePostiveRate(ct)
-fpr = falsePostiveRate(ct)
-ts  = threatScore(ct)
-tss = trueSkillStatistics(ct)
-bs  = bias(ct)
+ct3 = contingencyTable(y_pred3,obs,threshold)
+tpr3 = truePostiveRate(ct3)
+fpr3 = falsePostiveRate(ct3)
+ts3  = threatScore(ct3)
+tss3 = trueSkillStatistics(ct3)
+bs3  = bias(ct3)
 
 # Print results
 print(), print('(GBR):')
-print(ct)
+print(ct3)
 print('TH   = {:.2f}'.format(threshold,))
-print('TPR  = {:.2f}'.format(tpr,))
-print('FPR  = {:.2f}'.format(fpr,))
-print('TS   = {:.2f}'.format(ts,))
-print('TSS  = {:.2f}'.format(tss,))
-print('Bias = {:.2f}'.format(bs,))
+print('TPR  = {:.2f}'.format(tpr3,))
+print('FPR  = {:.2f}'.format(fpr3,))
+print('TS   = {:.2f}'.format(ts3,))
+print('TSS  = {:.2f}'.format(tss3,))
+print('Bias = {:.2f}'.format(bs3,))
+
+print()
+print('Latex Table Format:')
+print('max($B_\\textrm{tot}$)','&','LR','&','{:.0f}'.format(ct1[0]+ct1[2]),'&','{:.0f}'.format(ct1[0]+ct1[1]),'&','{:.0f}'.format(ct1[0]),
+      '&','{:.0f}'.format(ct1[1]),'&','{:.0f}'.format(ct1[2]),'&','{:.0f}'.format(ct1[3]),'&','{:.2f}'.format(tpr1),
+      '&','{:.2f}'.format(fpr1),'&','{:.2f}'.format(ts1),'&','{:.2f}'.format(tss1),'&','{:.2f}'.format(bs1),'\\\\')
+print('max($B_\\textrm{tot}$)','&','RFR','&','{:.0f}'.format(ct2[0]+ct2[2]),'&','{:.0f}'.format(ct2[0]+ct2[1]),'&','{:.0f}'.format(ct2[0]),
+      '&','{:.0f}'.format(ct2[1]),'&','{:.0f}'.format(ct2[2]),'&','{:.0f}'.format(ct2[3]),'&','{:.2f}'.format(tpr2),
+      '&','{:.2f}'.format(fpr2),'&','{:.2f}'.format(ts2),'&','{:.2f}'.format(tss2),'&','{:.2f}'.format(bs2),'\\\\')
+print('max($B_\\textrm{tot}$)','&','GBR','&','{:.0f}'.format(ct3[0]+ct3[2]),'&','{:.0f}'.format(ct3[0]+ct3[1]),'&','{:.0f}'.format(ct3[0]),
+      '&','{:.0f}'.format(ct3[1]),'&','{:.0f}'.format(ct3[2]),'&','{:.0f}'.format(ct3[3]),'&','{:.2f}'.format(tpr3),
+      '&','{:.2f}'.format(fpr3),'&','{:.2f}'.format(ts3),'&','{:.2f}'.format(tss3),'&','{:.2f}'.format(bs3),'\\\\')
+
+# Save results as np array
+argv3='btot_{}h_binary_measures'.format(feature_hours)  
+res_array = np.array([ct1+[tpr1, fpr1, ts1, tss1, bs1], ct2+[tpr2, fpr2, ts2, tss2, bs2], ct3+[tpr3, fpr3, ts3, tss3, bs3]])
+np.save('mfr_results/' + argv3, res_array)
 
 
-# In[30]:
+# #### Illustrate the effect of time window on the results
+
+# In[48]:
 
 
-"""# Compute ROC curve
-array = 0
-threshold = 12
-ct = contingencyTable(mod,obs,threshold)
-tpr = truePostiveRate(ct)
-fpr = falsePostiveRate(ct)
-ts  = threatScore(ct)
-tss = trueSkillStatistics(ct)
-bs  = bias(ct)
+d_metrics_mae = {'lr': [], 'rfr': [], 'gbr': []}
+d_metrics_pcc = {'lr': [], 'rfr': [], 'gbr': []}
 
+th_list = np.arange(0, 16)
+for idx in th_list:
+    [res_lr,res_rfr,res_gbr] = np.load('mfr_results/btot_{}h_error_measures.npy'.format(idx))
+    # me=[0], mae=[1], mse=[2], rmse=[3], ss=[4], pcc=[5]
+    d_metrics_mae['lr'].append(res_lr[1])
+    d_metrics_mae['rfr'].append(res_rfr[1])
+    d_metrics_mae['gbr'].append(res_gbr[1])
+    
+    d_metrics_pcc['lr'].append(res_lr[5])
+    d_metrics_pcc['rfr'].append(res_rfr[5])
+    d_metrics_pcc['gbr'].append(res_gbr[5])
+    
+fig, [ax1,ax2] = plt.subplots(1, 2,figsize=(16,4))
+
+#ax1.plot(th_list, d_metrics_mae['lr'], color='red', label='LR', marker='.')
+ax1.plot(th_list, d_metrics_mae['rfr'], color='steelblue', label='RFR', marker='.')
+ax1.plot(th_list, d_metrics_mae['gbr'], color='green', label='GBR', marker='.')
+ax1.set_xlabel('Time elapsed from MO start [h]', fontsize=14)
+ax1.set_ylabel('MAE for max(B$_{\mathrm{t}}$) prediction [nT]', fontsize=14)
+ax1.xaxis.set_major_locator(MultipleLocator(1))
+ax1.yaxis.set_major_locator(MultipleLocator(0.2))
+ax1.legend(loc=1,fontsize=16)
+
+#ax2.plot(th_list, d_metrics_pcc['lr'], color='red', label='LR', marker='.')
+ax2.plot(th_list, d_metrics_pcc['rfr'], color='steelblue', label='RFR', marker='.')
+ax2.plot(th_list, d_metrics_pcc['gbr'], color='green', label='GBR', marker='.')
+ax2.set_xlabel('Time elapsed from MO start [h]', fontsize=14)
+ax2.set_ylabel('PCC for max(B$_{\mathrm{t}}$) prediction [nT]', fontsize=14)
+ax2.set_ylim([0.7,0.95])
+ax1.set_ylim([2.0,3.6])
+ax2.legend(loc=4,fontsize=16)
+plt.subplots_adjust(wspace=0.3)
+
+# Change major ticks
+ax2.xaxis.set_major_locator(MultipleLocator(1))
+ax2.yaxis.set_major_locator(MultipleLocator(0.05))
+
+plt.subplots_adjust(wspace=0.25)
+for ax, ann in zip([ax1, ax2], ['c', 'd']):
+    ax.text(-.17, .97, ann, transform=ax.transAxes, fontsize=22, weight='bold')
+
+argv3='time_window_maxbt_{}h.pdf'.format(feature_hours)  
+plt.savefig('plots/' + argv3, bbox_inches='tight')
+plt.show()
+
+
+# In[227]:
+
+
+'''''
+# Compute ROC curve
+ax=plt.figure(figsize=(20,8),dpi=100)
 idx = 0
-tpr_arr = np.zeros(300)
-fpr_arr = np.zeros(300) 
-for threshold in np.arange(0, 40, 0.75):
-    ct = contingencyTable(mod,obs,threshold)
-    tpr_arr[idx] = truePostiveRate(ct)
-    fpr_arr[idx] = falsePostiveRate(ct)
+
+tpr_arr1 = np.zeros(300)
+tpr_arr2 = np.zeros(300)
+tpr_arr3 = np.zeros(300)
+
+fpr_arr1 = np.zeros(300)
+fpr_arr2 = np.zeros(300)
+fpr_arr3 = np.zeros(300)
+
+for threshold in np.arange(0, 30, 0.1):
+    ct1 = contingencyTable(y_pred1,obs,threshold)
+    ct2 = contingencyTable(y_pred2,obs,threshold)
+    ct3 = contingencyTable(y_pred3,obs,threshold)
+    
+    tpr_arr1[idx] = truePostiveRate(ct1)
+    tpr_arr2[idx] = truePostiveRate(ct2)
+    tpr_arr3[idx] = truePostiveRate(ct3)
+    
+    fpr_arr1[idx] = falsePostiveRate(ct1)
+    fpr_arr2[idx] = falsePostiveRate(ct2)
+    fpr_arr3[idx] = falsePostiveRate(ct3)
     idx = idx + 1
    
-array = np.array([tpr_arr, fpr_arr])
-test = np.sort(array, axis=1)
+vals1 = np.array([tpr_arr1, fpr_arr1])
+vals2 = np.array([tpr_arr2, fpr_arr2])
+vals3 = np.array([tpr_arr3, fpr_arr3])
 
-plt.subplots(1, figsize=(5,5))
-plt.title('Receiver Operating Characteristic - GBR')
-plt.plot(test[1,:], test[0,:])
-plt.plot([0, 1], ls="-.")
-plt.plot([0, 0], [1, 0] , c=".8"), plt.plot([1, 1] , c=".8")
+test1 = np.sort(vals1, axis=1)
+test2 = np.sort(vals2, axis=1)
+test3 = np.sort(vals3, axis=1)
+
+fig, ax1 = plt.subplots(1, figsize=(5,5))
+plt.title('Receiver Operating Characteristic')
+ax1.plot(test1[1,:], test1[0,:], color='coral', label='LR')
+ax1.plot(test2[1,:], test2[0,:], color='steelblue', label='RFR')
+ax1.plot(test3[1,:], test3[0,:], color='green', label='GBR')
+ax1.legend(loc=4,fontsize=12)
+ax1.plot([0, 1], ls="-.", color='gray')
+ax1.yaxis.set_major_locator(MultipleLocator(0.25))
+ax1.xaxis.set_major_locator(MultipleLocator(0.25))
+
 plt.ylabel('True Positive Rate')
 plt.xlabel('False Positive Rate')
-plt.show()"""
+plt.show()
+
+
+# In[146]:
+
+
+
 
 
 # ## 3. Real-world Applications
 
-# In[31]:
+# In[37]:
 
 
 from matplotlib.dates import DateFormatter
@@ -1062,7 +1183,7 @@ from matplotlib.dates import DateFormatter
 def plot_all_mos(sat, n_ind, start_range, end_range, satname, varstr='max'):
 
     nrows = end_range - start_range
-    plt.figure(figsize=(12, 4 * nrows))
+    plt.figure(figsize=(15, 5 * nrows))
 
     for iEv in range(start_range, end_range):
         ind = n_ind[test_ind[iEv]] # be careful with this!
@@ -1108,20 +1229,20 @@ def plot_all_mos(sat, n_ind, start_range, end_range, satname, varstr='max'):
     plt.show()
 
 
-# In[32]:
+# In[38]:
 
 
 #Example in Figure 1:
 y_pred = y_pred3
-plot_all_mos(win, n_iwinind, 17, 18, 'Wind')
+plot_all_mos(win, n_iwinind, 17, 20, 'Wind')
 
 
-# In[33]:
+# In[36]:
 
 
 y_pred = y_pred3
 start_range, end_range = 0, np.size(win_test_ind)
-plot_all_mos(win, n_iwinind, start_range, end_range, 'Wind')
+plot_all_mos(win, n_iwinind, 17, 20, 'Wind')
 #start_range, end_range = len(win_test_ind), len(win_test_ind) + len(sta_test_ind)
 #plot_all_mos(sta, n_istaind, start_range, end_range, 'STEREO-A')
 #start_range, end_range = len(win_test_ind) + len(sta_test_ind), len(test_ind)
