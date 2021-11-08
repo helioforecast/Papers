@@ -12,7 +12,7 @@
 # Copy Version 8 from https://figshare.com/articles/dataset/Solar_wind_in_situ_data_suitable_for_machine_learning_python_numpy_arrays_STEREO-A_B_Wind_Parker_Solar_Probe_Ulysses_Venus_Express_MESSENGER/12058065
 # into folder /data.
 
-# In[72]:
+# In[1]:
 
 
 # Python Modules and Packages
@@ -70,7 +70,7 @@ os.system('jupyter nbconvert --to script mfrpred_mreiss_bz.ipynb')
 
 # #### File and folder variables:
 
-# In[73]:
+# In[2]:
 
 
 # Make plots and results folders
@@ -90,7 +90,7 @@ savepath_stb = 'stb_features.p'
 
 # #### Load HELCATS ICME data catalog
 
-# In[74]:
+# In[3]:
 
 
 [ic,header,parameters] = pickle.load(open('data/HELCATS_ICMECAT_v20_pandas.p', "rb" ))
@@ -124,7 +124,7 @@ vexi=np.where(ic.sc_insitu=='VEX')[0]
 
 # #### Load spacecraft data
 
-# In[75]:
+# In[4]:
 
 
 # Load Wind data
@@ -139,7 +139,7 @@ vexi=np.where(ic.sc_insitu=='VEX')[0]
 
 # #### Study only events with a sheath region
 
-# In[76]:
+# In[6]:
 
 
 # Event indices from STEREO and Wind
@@ -169,9 +169,15 @@ print('Percentage of all events',np.round((n_iwinind.shape[0] + n_istaind.shape[
 #n_all1=np.hstack([n_iwinind,n_istaind,n_istbind])
 
 
+# In[5]:
+
+
+
+
+
 # #### Timing windows for features and labels
 
-# In[77]:
+# In[9]:
 
 
 # Set time window for features in hours
@@ -197,7 +203,7 @@ label_end = mo_end_time_num
 
 # #### Functions to compute features and labels
 
-# In[78]:
+# In[10]:
 
 
 # Compute mean, max and std-dev in feature time window
@@ -262,7 +268,7 @@ def get_label(sc_time, start_time, end_time, sc_ind, sc_label, label_type="max")
 
 # #### Create data frame for features and labels
 
-# In[79]:
+# In[11]:
 
 
 #contains all events that are finally selected
@@ -374,7 +380,7 @@ else:
 
 # #### Clean the data frame by removing NaNs 
 
-# In[80]:
+# In[12]:
 
 
 #get original indices of the 362 events
@@ -392,7 +398,7 @@ print(len(dfwin)+len(dfsta)+len(dfstb))
 print(len(win_select_ind)+len(sta_select_ind)+len(stb_select_ind))
 
 
-# In[81]:
+# In[13]:
 
 
 print(len(dfwin))
@@ -437,7 +443,7 @@ n_all=np.hstack([win_select_ind1,sta_select_ind1,stb_select_ind1])
 print(len(n_all))
 
 
-# In[82]:
+# In[14]:
 
 
 ##reduce dataframes finally to selected events

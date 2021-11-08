@@ -1,14 +1,14 @@
 ## Multipoint ICME lineups in the Solar Orbiter era
 
-Code repository for paper Möstl et al. 2021 ApJ (in prep.).
+Code repository for paper Möstl et al. 2021 ApJ.
 
 Authors: C. Möstl, IWF Graz, Austria; twitter @chrisoutofspace; https://github.com/cmoestl
 
-**work in progress, last update August 2021**
+**last update November 8 2021**
 
-To install a conda environment, dependencies are listed under environment.yml, and pip in requirements.txt. Plots are saved in folder "plots" as png and pdf. 
+To install a conda environment, dependencies are listed under environment.yml, and pip in requirements.txt. 
 
-See lineups.ipynb 
+The multipoint ICME catalog is created with the jupyter notebook "lineups.ipynb".
 
 ---
 
@@ -42,7 +42,7 @@ Create a conda environment using the environment.yml and requirements.txt file i
 
 	  conda env create -f environment.yml
 
-	  conda activate multi
+	  conda activate helio_multi
 
 	  pip install -r requirements.txt
 	  
