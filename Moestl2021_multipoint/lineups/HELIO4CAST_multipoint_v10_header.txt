@@ -1,0 +1,54 @@
+HELIO4CAST Multipoint ICME catalog v1.0 
+
+This is the HELIO4CAST multipoint interplanetary coronal mass ejection (ICME) catalog. 
+This is version 1.0, released 2021-September-10. doi: 10.6084/m9.figshare.15134745 
+
+Rules: If results are produced with this catalog for peer-reviewed scientific publications,
+please contact christian.moestl@oeaw.ac.at for possible co-authorship. 
+The reference for this catalog is Moestl et al. 2021 (in preparation).  
+
+The catalog is available as a python pandas dataframe (pickle), json, csv, xlsx, txt, at 
+https://helioforecast.space/lineups and https://doi.org/10.6084/m9.figshare.15134745 . 
+
+Number of events: 17 
+ICME observatories: Solar Orbiter, Parker Solar Probe (PSP), BepiColombo, Wind, STEREO-A.   
+Time range: April 2020 - April 2021. 
+
+Authors: Christian Moestl, Andreas J. Weiss, Rachel L. Bailey, Martin A. Reiss, 
+Space Research Institute, Austrian Academy of Sciences, Graz, Austria.
+Barnes, J. A. Davies, R. A. Harrison, RAL Space, UK. 
+
+The python source code for producing this catalog is available at https://github.com/cmoestl/heliocats lineups.ipynb
+
+Each event has unique identifier either from the HELIO4CAST ICMECAT or the HELCATS HIGeoCAT. 
+
+Comments: 
+
+- Spacecraft positions are given in Heliocentric Earth Equatorial Coordinates (HEEQ) coordinates. 
+
+- The coordinate system for the Bz magnetic field components is SCEQ, except for Wind (HEEQ, which is the equivalent for SCEQ for Earth). 
+        Definition of SpaceCraft Equatorial Coordinates (SCEQ): 
+        Z is the solar rotation axis. 
+        Y is the cross product of Z and R, with R being the vector that points from the Sun to the spacecraft.
+        X completes the right handed triad (and points away from the Sun). 
+This system is thus like HEEQ but centered on the respective in situ spacecraft, so the SCEQ X and Y 
+base vectors are rotated by the HEEQ longitude of the in situ spacecraft from HEEQ X and Y.
+The Y vector is similar to the T vector in an RTN system for each spacecraft, but the X and Z vectors 
+are rotated around Y compared to an RTN system. The differences between RTN and SCEQ for spacecraft within 
+a few degrees of the solar equatorial plane are very small (within a few 0.1 nT usually).
+We choose SCEQ for the advantage that a comparison of the data of multipoint CME events 
+and comparisons to simulations are simpler because there is always a similar reference plane (the solar equatorial plane).
+
+'Parameters:
+01: event: To which multipoint event the row belongs to, unit: integer. 
+02: event_start_time: For in situ spacecraft, similar to icme_start_time in the ICMECAT. For STEREO-A-HI (HIA), its the sse_launch_time from HIGeoCAT. unit: UTC. 
+03: spacecraft: HIA if the entry refers to observations from STEREO-A-HI, otherwise the in situ observing spacecraft. unit: string. 
+04: sc_heliodistance: Heliocentric distance of the spacecraft at event_start_time. unit: AU.
+05: sc_long_heeq: Heliospheric longitude of the spacecraft at event_start_time, range [-180,180]. unit: degree (HEEQ).
+06: cme_long_heeq: CME longitude, derived from SSEF30 modeling with STEREO-A-HI, range [-180,180]. unit: degree (HEEQ).
+07: speed: For in situ observations, the speed over the whole ICME interval (icme_speed_mean in ICMECAT). For HIA, the speed derived from SSEF30 modeling in HIGeoCAT. unit: km/s.
+08: mo_bmax: Only for in situ observations, maximum total magnetic field in the magnetic obstacle interval (mo_start_time to mo_end_time). unit: nT.
+09: mo_bzmin: Only for in situ observations, minimum magnetic field Bz component in the magnetic obstacle. unit: nT.
+10: id: the id from either the ICMECAT or HIGeoCAT, allowing to look up the event directly in these other catalogs. 
+
+
