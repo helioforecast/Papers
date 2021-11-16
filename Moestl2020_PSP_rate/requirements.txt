@@ -10,4 +10,4 @@ aacgmv2==2.6.0
 openpyxl==3.0.3
 xlrd==1.2.0
 lxml==4.6.3
-jupyterlab==2.2.4
+jupyterlab==2.2.10
