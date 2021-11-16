@@ -1,0 +1,5 @@
+data/SN*
+data/*ndarray.p
+mfr_predict
+mfr_results
+plots
